@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<link rel="icon" type="image/png" href="icon.png">
+<meta name="description" content="시간강사 수업확인표 캡처를 이용한 주휴수당·급여 자동계산기">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>시간강사 캡처 자동계산기 PRO v9</title>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.4/dist/tesseract.min.js"></script>
+<style>
+:root{
+  --bg:#f4f7fb; --card:#fff; --line:#dbe2ee; --text:#172033; --muted:#667085;
+  --pri:#3156d9; --pri2:#eaf0ff; --ok:#067647; --bad:#b42318; --warn:#9a6700;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}
+.wrap{max-width:1320px;margin:0 auto;padding:24px 18px 52px}
+h1{margin:0 0 7px;font-size:29px}
+.lead{color:var(--muted);line-height:1.65;margin-bottom:19px}
+.grid{display:grid;grid-template-columns:1.08fr .92fr;gap:17px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 5px 18px rgba(31,47,80,.05)}
+.card h2{font-size:18px;margin:0 0 14px}
+.drop{border:2px dashed #b8c5df;border-radius:15px;background:#fbfcff;text-align:center;padding:23px 18px;cursor:pointer;transition:.15s}
+.drop.drag{border-color:var(--pri);background:var(--pri2);transform:scale(1.003)}
+.drop strong{display:block;font-size:18px;margin-bottom:7px}
+.drop small{color:var(--muted);line-height:1.55}
+#file{display:none}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+button{border:0;border-radius:10px;padding:10px 14px;font-weight:750;cursor:pointer;font-size:14px}
+.primary{background:var(--pri);color:#fff}
+.secondary{background:#eef2f7;color:#26344d}
+.green{background:#e8f7f0;color:#067647}
+.danger{background:#fff0ee;color:#b42318}
+.previewWrap{position:relative;margin-top:13px;display:none;border:1px solid var(--line);border-radius:11px;overflow:hidden;background:#fff}
+#previewCanvas{display:block;width:100%;height:auto;max-height:460px;object-fit:contain}
+.statusBox{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:#fafbfc;font-size:13px;line-height:1.55}
+.statusBox.ok{background:#ecfdf3;border-color:#abefc6;color:#05603a}
+.statusBox.bad{background:#fef3f2;border-color:#fecdca;color:#912018}
+.progressWrap{height:9px;background:#edf1f7;border-radius:999px;overflow:hidden;margin-top:10px;display:none}
+.progress{height:100%;width:0;background:var(--pri);transition:width .15s}
+.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.field label{font-size:13px;font-weight:750}
+.field input,.field select{width:100%;border:1px solid #cfd8e6;border-radius:9px;padding:10px 11px;font-size:15px;background:#fff}
+.field input:focus,.field select:focus{outline:2px solid #ccd8ff;border-color:var(--pri)}
+.note{font-size:12.5px;color:var(--muted);line-height:1.6}
+.tip{border-left:4px solid #f2a000;background:#fff8e7;color:#6f5200;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.55;margin-top:12px}
+.badge{display:inline-block;background:#eef3ff;color:#3553a6;padding:4px 9px;border-radius:999px;font-size:12px;font-weight:750}
+.steps{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.step{padding:5px 9px;border-radius:999px;background:#f0f2f6;color:#667085;font-size:12px;font-weight:700}
+.step.on{background:#eaf0ff;color:#3156d9}.step.done{background:#e8f7f0;color:#067647}
+.tableWrap{overflow:auto;margin-top:11px}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:8px 7px;text-align:center;font-size:13px;white-space:nowrap}
+th{background:#f2f5f9}
+td input{width:126px;border:1px solid #cfd8e6;border-radius:6px;padding:6px;text-align:center}
+td input[type=number]{width:70px}
+.money{font-variant-numeric:tabular-nums;font-weight:750}
+.purple{background:#ede0f6}.blue{background:#dfe9ff}
+.weekCard{border:1px solid var(--line);border-radius:10px;background:#fbfcfe;padding:10px 12px;margin-top:8px;font-size:13px;line-height:1.55}
+.yes{color:var(--ok);font-weight:800}.no{color:var(--bad);font-weight:800}
+.diag{margin-top:11px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.diag div{background:#f7f9fc;border:1px solid var(--line);border-radius:9px;padding:8px;text-align:center;font-size:12px;color:var(--muted)}
+.diag b{display:block;color:var(--text);font-size:15px;margin-top:2px}
+.footer{margin-top:13px;color:var(--muted);font-size:12px;line-height:1.65}
+
+.guideOverlay{
+  position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center;
+  padding:18px; background:rgba(15,23,42,.48);
+}
+.guideOverlay.hidden{display:none}
+.guideModal{
+  width:min(620px,100%); max-height:88vh; overflow:auto; background:#fff; border-radius:18px;
+  border:1px solid #dbe2ee; box-shadow:0 24px 60px rgba(15,23,42,.24); padding:22px;
+}
+.guideModal h3{margin:0 0 8px;font-size:21px}
+.guideModal .guideLead{color:#475467;line-height:1.6;margin-bottom:14px}
+.guideModal ol{margin:0;padding-left:22px;line-height:1.75}
+.guideModal li+li{margin-top:5px}
+.guideModal .key{
+  display:inline-block;padding:1px 7px;border:1px solid #cfd8e6;border-bottom-width:2px;border-radius:6px;
+  background:#f8fafc;font-weight:800;font-size:12px;
+}
+.guideModal .good{
+  margin-top:14px;padding:11px 12px;border-radius:10px;background:#ecfdf3;color:#05603a;line-height:1.55;font-size:13px;
+}
+.guideModal .warn{
+  margin-top:9px;padding:11px 12px;border-radius:10px;background:#fff7e8;color:#7a5200;line-height:1.55;font-size:13px;
+}
+.guideActions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
+
+@media(max-width:920px){.grid{grid-template-columns:1fr}.diag{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:540px){.wrap{padding:16px 9px}.row{grid-template-columns:1fr}.diag{grid-template-columns:1fr}h1{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>시간강사 캡처 자동계산기 PRO v9</h1>
+  <div class="lead">
+    이번 버전은 <b>표 전체 한글 OCR에 의존하지 않습니다.</b>
+    캡처의 <b>가로·세로 표선을 직접 검출</b>한 뒤, 날짜와 맨 아래 <b>계</b> 행을 읽습니다. <b>‘계’ 숫자를 수업시간</b>으로 사용하고, 점심은 <b>급식비 공제 체크</b>로만 처리합니다. 캡처 이미지는 인식이 끝나면 화면과 메모리에서 자동 삭제됩니다. 따라서 학교 수업확인표처럼 선이 있는 표에 훨씬 안정적으로 작동합니다.
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <h2>① 수업확인표 캡처 넣기</h2>
+      <div id="drop" class="drop" tabindex="0">
+        <strong>캡처 이미지를 여기로 끌어놓으세요</strong>
+        <small>또는 버튼으로 파일 선택 / 화면 캡처 후 <b>Ctrl+V</b> 붙여넣기 · 클립보드 이미지는 자동 선명화</small>
+        <div class="btns" style="justify-content:center">
+          <button type="button" class="primary" id="pickBtn">이미지 파일 선택</button>
+          <button type="button" class="primary" id="pasteBtn">클립보드 붙여넣기</button>
+          <button type="button" class="secondary" id="guideBtn">붙여넣기 요령</button>
+        </div>
+      </div>
+      <input id="file" type="file" accept="image/png,image/jpeg,image/webp,image/bmp">
+
+      <div class="progressWrap" id="progressWrap"><div class="progress" id="progress"></div></div>
+      <div id="status" class="statusBox">이미지를 넣으면 자동으로 표선을 찾은 뒤 셀 단위 OCR을 시작합니다.</div>
+      <div class="steps">
+        <span class="step" id="s1">1. 이미지</span>
+        <span class="step" id="s2">2. 표선 검출</span>
+        <span class="step" id="s3">3. 셀 OCR</span>
+        <span class="step" id="s4">4. 계산</span>
+      </div>
+      <div class="diag">
+        <div>가로선<b id="dy">-</b></div>
+        <div>세로선<b id="dx">-</b></div>
+        <div>날짜 열<b id="dd">-</b></div>
+        <div>계 인식률<b id="dok">-</b></div>
+      </div>
+      <div class="btns">
+        <button class="primary" id="retryBtn" disabled>다시 인식</button>
+        <button class="secondary" id="clearBtn">초기화</button>
+      </div>
+      <div class="tip">
+        인식이 끝나면 <b>캡처 이미지는 자동 삭제</b>됩니다. 날짜와 수업시간이 정상적으로 읽히면 상태는 자동으로 <b>확인</b>으로 표시됩니다. 점심식사는 급식비 공제용 체크이므로 체크 여부 때문에 ‘확인필요’가 뜨지 않습니다. 수정하면 금액은 즉시 다시 계산됩니다.
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>② 계산 기준</h2>
+      <div class="row">
+        <div class="field"><label>시간단가(원)</label><input id="hourRate" type="number" value="24000" step="100"></div>
+        <div class="field"><label>급식비 단가(원)</label><input id="mealRate" type="number" value="4970" step="10"></div>
+        <div class="field"><label>고용보험 본인부담률(%)</label><input id="insuranceRate" type="number" value="0.9" step="0.1"></div>
+        <div class="field"><label>기준 연도</label><input id="year" type="number" value="2026" min="2020" max="2100"></div>
+        <div class="field"><label>계약 시작일</label><input id="contractStart" type="date"></div>
+        <div class="field"><label>계약 종료일</label><input id="contractEnd" type="date"></div>
+      </div>
+      <div class="field">
+        <label><input id="attendance" type="checkbox" checked style="width:auto;margin-right:7px">소정근로일 개근</label>
+      </div>
+      <div class="field">
+        <label>고용보험 공제 처리</label>
+        <select id="insuranceRound">
+          <option value="10" selected>10원 미만 절사</option>
+          <option value="1">1원 미만 절사</option>
+          <option value="round">원 단위 반올림</option>
+          <option value="none">절사 없이 계산</option>
+        </select>
+      </div>
+      <div class="note">
+        <b>수업시간 = 캡처의 ‘계’ 행 숫자</b>를 그대로 사용합니다.<br>
+        주휴수당 = 해당 완성 주의 수업시간 ÷ 40 × 8 × 시간단가<br>→ 주차별 판단 아래에 <b>실제 숫자를 넣은 계산식</b>도 함께 표시합니다.<br>
+        단, 근로 시작일을 1주의 시작일로 하여 7일 단위로 보고, 계약기간 평균 주 15시간 이상·개근인 경우 계산합니다.
+      </div>
+    </section>
+  </div>
+
+  <section class="card" style="margin-top:17px">
+    <h2>③ 자동 인식된 날짜별 수업내역 <span class="badge">수업시간 = 계 / 점심 = 체크</span></h2>
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr><th>날짜</th><th>수업시간</th><th>점심식사</th><th>확인상태</th><th>삭제</th></tr>
+        </thead>
+        <tbody id="body"><tr><td colspan="5" style="color:#7b8496">아직 인식된 자료가 없습니다.</td></tr></tbody>
+      </table>
+    </div>
+    <div class="btns">
+      <button class="secondary" id="addRow">행 추가</button>
+    </div>
+
+    <h2 style="margin-top:21px">④ 주차별 주휴수당 판단</h2>
+    <div id="weeks" class="note">근무내역이 인식되면 자동 표시됩니다.</div>
+
+    <h2 style="margin-top:21px">⑤ 엑셀 서식형 계산 결과</h2>
+    <div class="tableWrap">
+      <table style="min-width:1180px">
+        <thead>
+          <tr>
+            <th colspan="2">근 무 일</th><th>근무일수</th><th>수업시간</th><th>단가</th><th>유급휴일</th>
+            <th>주차(일)</th><th>주휴수당</th><th>근무수당</th><th>수당합계 A</th>
+            <th class="blue">급식비</th><th class="blue">고용보험</th><th>공제합계 B</th><th>실지급액 A-B</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td id="oStart">-</td><td id="oEnd">-</td><td id="oDays" class="purple">0</td><td id="oHours">0</td>
+            <td id="oRate">24,000</td><td>-</td><td id="oWeeks">0</td><td id="oWeekly" class="money">0</td>
+            <td id="oWork" class="money">0</td><td id="oA" class="money">0</td>
+            <td id="oMeal" class="money blue">0</td><td id="oIns" class="money blue">0</td>
+            <td id="oB" class="money">0</td><td id="oNet" class="money">0</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="btns">
+      <button class="primary" id="copyBtn">엑셀용 한 줄 복사</button>
+      <button class="green" id="csvBtn">CSV 저장</button>
+    </div>
+    <div class="footer">
+      ※ 표 구조는 ‘왼쪽 시간열 + 날짜열들 + 오른쪽 계열’, 마지막 세 행은 ‘점심시간 / 수업시간 / 계’인 학교 수업확인표를 기준으로 합니다. <b>‘계’ 행 숫자를 수업시간</b>으로 사용하고, 점심시간 행의 1은 <b>점심식사 체크</b>로 변환하여 급식비를 계산합니다.<br>
+      ※ 캡처 마지막 수업일을 계약 종료일로 자동 입력합니다. 실제 계약서상 종료일이 다르면 반드시 위 계약 종료일을 수정하세요.
+    </div>
+  </section>
+
+<div id="guideOverlay" class="guideOverlay" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+  <div class="guideModal">
+    <h3 id="guideTitle">클립보드 한 번에 인식하는 요령</h3>
+    <div class="guideLead">아래 순서대로 하면 <b>캡처 → 한 번 붙여넣기 → 자동계산</b> 성공률이 가장 높습니다.</div>
+    <ol>
+      <li>수업확인표를 화면에 <b>크게 표시</b>합니다. 표 전체가 보이도록 하고 너무 작게 축소하지 마세요.</li>
+      <li>Windows에서 <span class="key">Win</span> + <span class="key">Shift</span> + <span class="key">S</span> 를 눌러 캡처합니다.</li>
+      <li><b>날짜 행부터 맨 아래 ‘점심시간·수업시간·계’ 행까지</b> 포함하고, 표의 왼쪽·오른쪽 테두리도 함께 들어오게 캡처합니다.</li>
+      <li>캡처 후 미리보기나 다른 프로그램에 붙이지 말고, <b>바로 이 계산기로 돌아옵니다.</b></li>
+      <li>파란 <b>‘클립보드 붙여넣기’</b> 버튼을 한 번 누릅니다. 브라우저가 클립보드 권한을 물으면 <b>허용</b>을 선택하세요.</li>
+      <li>권한창이 뜨지 않거나 버튼이 막히면 계산기 화면 아무 곳에서 <span class="key">Ctrl</span> + <span class="key">V</span> 를 누르면 됩니다.</li>
+    </ol>
+    <div class="good"><b>가장 중요:</b> 캡처 후 ‘사진 미리보기 → 다시 복사’하지 말고, <b>캡처 직후 원본 클립보드 상태에서 바로 붙여넣기</b> 하세요.</div>
+    <div class="warn"><b>인식이 잘 안 되는 경우:</b> 표를 너무 좁게 잘라 테두리가 빠졌거나, 화면에서 이미 축소된 이미지를 다시 복사한 경우가 많습니다.</div>
+    <div class="guideActions">
+      <button type="button" class="secondary" id="guideClose">닫기</button>
+      <button type="button" class="primary" id="guidePaste">바로 클립보드 붙여넣기</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let rows=[];
+let sourceImg=null;
+let gridInfo=null;
+let worker=null;
+
+function setStep(n,state){
+  for(let i=1;i<=4;i++){
+    const e=$('s'+i); e.classList.remove('on','done');
+    if(i<n) e.classList.add('done');
+    else if(i===n) e.classList.add(state==='done'?'done':'on');
+  }
+}
+function setStatus(text,type=''){
+  const e=$('status'); e.textContent=text; e.className='statusBox'+(type?' '+type:'');
+}
+function money(v){
+  const n=Number(v)||0;
+  return Math.round(n).toLocaleString('ko-KR');
+}
+function ymd(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function parseDate(s){
+  if(!s)return null; const [y,m,d]=s.split('-').map(Number);
+  return new Date(y,m-1,d,12);
+}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
+function diffDays(a,b){return Math.round((b-a)/86400000)}
+function median(a){if(!a.length)return 0; const s=[...a].sort((x,y)=>x-y),m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2}
+
+function clusterIndices(arr,gap=3){
+  if(!arr.length)return [];
+  const out=[]; let cur=[arr[0]];
+  for(let i=1;i<arr.length;i++){
+    if(arr[i]-arr[i-1]<=gap)cur.push(arr[i]);
+    else{out.push(Math.round(cur.reduce((a,b)=>a+b,0)/cur.length));cur=[arr[i]]}
+  }
+  out.push(Math.round(cur.reduce((a,b)=>a+b,0)/cur.length));
+  return out;
+}
+function longestRunRow(gray,W,y,thr){
+  let best=0,run=0;
+  let off=y*W;
+  for(let x=0;x<W;x++){
+    if(gray[off+x]<thr){run++;if(run>best)best=run}else run=0;
+  }
+  return best;
+}
+function longestRunCol(gray,W,H,x,y0,y1,thr){
+  let best=0,run=0;
+  for(let y=y0;y<=y1;y++){
+    if(gray[y*W+x]<thr){run++;if(run>best)best=run}else run=0;
+  }
+  return best;
+}
+function chooseHorizontalSequence(centers,H){
+  if(centers.length<6)return centers;
+  let best=[];
+  for(let i=0;i<centers.length;i++){
+    let seq=[centers[i]];
+    for(let j=i+1;j<centers.length;j++){
+      const gap=centers[j]-seq[seq.length-1];
+      if(gap>=12 && gap<=Math.max(95,H*.16)) seq.push(centers[j]);
+      else if(gap>Math.max(95,H*.16)) break;
+    }
+    if(seq.length>best.length)best=seq;
+  }
+  return best.length>=6?best:centers;
+}
+function detectGrid(img){
+  const c=document.createElement('canvas');
+  c.width=img.naturalWidth;c.height=img.naturalHeight;
+  const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0);
+  const id=ctx.getImageData(0,0,c.width,c.height), W=c.width,H=c.height;
+  const gray=new Uint8Array(W*H);
+  for(let i=0,j=0;i<id.data.length;i+=4,j++){
+    gray[j]=(id.data[i]*.299+id.data[i+1]*.587+id.data[i+2]*.114)|0;
+  }
+  let yc=[];
+  for(let y=0;y<H;y++){
+    if(longestRunRow(gray,W,y,215)>W*.30)yc.push(y);
+  }
+  let ys=chooseHorizontalSequence(clusterIndices(yc,3),H);
+  if(ys.length<7) throw new Error(`가로 표선을 충분히 찾지 못했습니다(${ys.length}개).`);
+
+  const y0=ys[0], y1=ys[ys.length-1], span=y1-y0;
+  let xc=[];
+  for(let x=0;x<W;x++){
+    if(longestRunCol(gray,W,H,x,y0,y1,215)>span*.43)xc.push(x);
+  }
+  let xs=clusterIndices(xc,3);
+  if(xs.length<5) throw new Error(`세로 표선을 충분히 찾지 못했습니다(${xs.length}개).`);
+
+  // 표 외부의 우연한 세로선 제거: 인접 간격의 중앙값과 크게 어긋나는 가장자리만 정리
+  if(xs.length>5){
+    let gaps=xs.slice(1).map((x,i)=>x-xs[i]).filter(v=>v>20);
+    let gmed=median(gaps);
+    while(xs.length>5 && xs[1]-xs[0] > gmed*2.2) xs.shift();
+    while(xs.length>5 && xs[xs.length-1]-xs[xs.length-2] > gmed*2.2) xs.pop();
+  }
+  return {xs,ys,W,H,canvas:c};
+}
+function drawPreview(){
+  if(!sourceImg)return;
+  const c=$('previewCanvas'), maxW=1200;
+  const scale=Math.min(1,maxW/sourceImg.naturalWidth);
+  c.width=Math.round(sourceImg.naturalWidth*scale);
+  c.height=Math.round(sourceImg.naturalHeight*scale);
+  const ctx=c.getContext('2d');
+  ctx.drawImage(sourceImg,0,0,c.width,c.height);
+  if(gridInfo){
+    ctx.save();
+    ctx.strokeStyle='#2457ff';ctx.lineWidth=Math.max(1,2*scale);
+    for(const y of gridInfo.ys){ctx.beginPath();ctx.moveTo(gridInfo.xs[0]*scale,y*scale);ctx.lineTo(gridInfo.xs.at(-1)*scale,y*scale);ctx.stroke()}
+    for(const x of gridInfo.xs){ctx.beginPath();ctx.moveTo(x*scale,gridInfo.ys[0]*scale);ctx.lineTo(x*scale,gridInfo.ys.at(-1)*scale);ctx.stroke()}
+    ctx.restore();
+  }
+}
+function cropCanvas(img,x0,y0,x1,y1,scale=4,threshold=null){
+  const padX=Math.max(3,(x1-x0)*.035), padY=Math.max(2,(y1-y0)*.10);
+  x0+=padX;x1-=padX;y0+=padY;y1-=padY;
+  const w=Math.max(3,Math.floor(x1-x0)),h=Math.max(3,Math.floor(y1-y0));
+  const c=document.createElement('canvas'); c.width=w*scale;c.height=h*scale;
+  const ctx=c.getContext('2d',{willReadFrequently:true});
+  ctx.fillStyle='white';ctx.fillRect(0,0,c.width,c.height);
+  ctx.drawImage(img,x0,y0,w,h,0,0,c.width,c.height);
+  if(threshold){
+    const id=ctx.getImageData(0,0,c.width,c.height);
+    for(let i=0;i<id.data.length;i+=4){
+      const g=id.data[i]*.299+id.data[i+1]*.587+id.data[i+2]*.114;
+      const v=g<threshold?0:255;
+      id.data[i]=id.data[i+1]=id.data[i+2]=v;
+    }
+    ctx.putImageData(id,0,0);
+  }
+  return c;
+}
+async function getWorker(){
+  if(worker)return worker;
+  setStatus('OCR 엔진을 처음 불러오는 중입니다. 잠시만 기다려 주세요.');
+  worker=await Tesseract.createWorker({
+    logger:m=>{
+      if(m.progress!=null){
+        $('progressWrap').style.display='block';
+        $('progress').style.width=Math.max(2,Math.round(m.progress*100))+'%';
+      }
+    },
+    langPath:'https://tessdata.projectnaptha.com/4.0.0'
+  });
+  await worker.loadLanguage('kor+eng');
+  await worker.initialize('kor+eng');
+  return worker;
+}
+async function ocrHeader(canvas){
+  const w=await getWorker();
+  await w.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:''});
+  let r=await w.recognize(canvas);
+  let t=(r.data.text||'').trim().replace(/\s+/g,'');
+  let m=t.match(/(\d{1,2})\s*[\/.]\s*(\d{1,2})(?=\D|$)/);
+  if(m)return {month:+m[1],day:+m[2],raw:t,ok:true};
+
+  // 한글요일 때문에 실패하면 숫자 전용으로 한 번 더
+  await w.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'0123456789/.'});
+  r=await w.recognize(canvas);
+  t=(r.data.text||'').trim().replace(/\s+/g,'');
+  m=t.match(/(\d{1,2})[\/.]([0-9]{1,3})/);
+  if(m){
+    let ds=m[2];
+    while(ds.length>2 || +ds>31)ds=ds.slice(0,-1);
+    if(ds && +m[1]>=1 && +m[1]<=12 && +ds>=1 && +ds<=31)
+      return {month:+m[1],day:+ds,raw:t,ok:false};
+  }
+  return {month:null,day:null,raw:t,ok:false};
+}
+async function ocrNumber(canvas){
+  const w=await getWorker();
+  await w.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'0123456789.'});
+  const r=await w.recognize(canvas);
+  const t=(r.data.text||'').trim().replace(/[Oo]/g,'0').replace(/[Il|]/g,'1');
+  const m=t.match(/\d+(?:\.\d+)?/);
+  return {value:m?+m[0]:null,raw:t,conf:r.data.confidence||0};
+}
+function repairDates(list){
+  // 같은 달 내에서 날짜가 역전되는 경우, 숫자 전용 OCR의 요일 잔여 숫자를 잘라 보정
+  for(let i=0;i<list.length;i++){
+    if(!list[i].month||!list[i].day)continue;
+    if(i>0 && list[i-1].month===list[i].month && list[i].day<=list[i-1].day){
+      const s=String(list[i].day);
+      if(s.length===2 && +s[0]>list[i-1].day) list[i].day=+s[0];
+    }
+  }
+  return list;
+}
+async function recognize(){
+  if(!sourceImg)return;
+  $('retryBtn').disabled=true;
+  $('progressWrap').style.display='block';$('progress').style.width='2%';
+  try{
+    setStep(2);setStatus('표의 가로·세로 선을 찾고 있습니다…');
+    gridInfo=detectGrid(sourceImg);
+    $('dy').textContent=gridInfo.ys.length;
+    $('dx').textContent=gridInfo.xs.length;
+
+    const xs=gridInfo.xs,ys=gridInfo.ys;
+    const dateCount=xs.length-3; // 왼쪽 시간열 + 날짜열 + 오른쪽 계열
+    if(dateCount<1)throw new Error('날짜 열 개수를 계산하지 못했습니다.');
+    $('dd').textContent=dateCount;
+    setStep(3);setStatus(`표선 검출 성공. 날짜 ${dateCount}개 셀을 정밀 OCR 중입니다…`);
+
+    const headers=[];
+    for(let j=1;j<=dateCount;j++){
+      const cc=cropCanvas(sourceImg,xs[j],ys[0],xs[j+1],ys[1],5,220);
+      headers.push(await ocrHeader(cc));
+      $('progress').style.width=(10+25*j/dateCount)+'%';
+    }
+    repairDates(headers);
+
+    const yLunch0=ys[ys.length-4], yLunch1=ys[ys.length-3];
+    const yTotal0=ys[ys.length-2], yTotal1=ys[ys.length-1];
+
+    const totals=[],lunchDirect=[];
+    for(let j=1;j<=dateCount;j++){
+      const totalC=cropCanvas(sourceImg,xs[j],yTotal0,xs[j+1],yTotal1,7,215);
+      const lunchC=cropCanvas(sourceImg,xs[j],yLunch0,xs[j+1],yLunch1,7,220);
+      totals.push(await ocrNumber(totalC));
+      lunchDirect.push(await ocrNumber(lunchC));
+      $('progress').style.width=(35+50*j/dateCount)+'%';
+    }
+
+    const yr=+$('year').value||2026;
+    const out=[];
+    let okCount=0;
+    for(let i=0;i<dateCount;i++){
+      const h=headers[i];
+      const tt=totals[i].value;
+      let lu=lunchDirect[i].value;
+      if(lu!=null && lu>2) lu=null;
+
+      if(h.month&&h.day){
+        const date=`${yr}-${String(h.month).padStart(2,'0')}-${String(h.day).padStart(2,'0')}`;
+        const hours=tt==null?0:tt;            // '계' = 수업시간
+        const meal=(lu!=null && lu>=1);       // 점심시간 숫자는 체크 여부로만 사용
+        // 표시된 날짜와 수업시간(=계)이 정상 값이면 바로 '확인'.
+        // 점심식사 체크 여부는 급식비 공제용이므로 인식상태를 '확인필요'로 만들지 않음.
+        const ok=(tt!=null && Number.isFinite(hours) && hours>0);
+        if(ok)okCount++;
+        out.push({
+          date,
+          hours,
+          meal,
+          ok,
+          raw:`${h.raw} / 계:${totals[i].raw||'-'} / 점심:${lunchDirect[i].raw||'-'}`
+        });
+      }
+    }
+    if(!out.length)throw new Error('표선은 찾았지만 날짜를 읽지 못했습니다.');
+
+    rows=out;
+    rows.sort((a,b)=>a.date.localeCompare(b.date));
+    $('contractStart').value=rows[0].date;
+    $('contractEnd').value=rows.at(-1).date;
+    $('dok').textContent=Math.round(okCount/out.length*100)+'%';
+    renderRows();
+    calculate();
+
+    setStep(4,'done');
+    setStatus(`완료: 날짜 ${out.length}일을 읽었습니다. 수업시간과 점심식사 체크만 확인해 주세요. 캡처 이미지는 자동 삭제했습니다.`, 'ok');
+    $('progress').style.width='100%';
+
+    // 개인정보가 포함될 수 있는 캡처 이미지는 인식 완료 즉시 메모리에서 제거
+    sourceImg=null;
+    gridInfo=null;
+    $('file').value='';
+    $('retryBtn').disabled=true;
+  }catch(e){
+    console.error(e);
+    setStatus('자동인식 실패: '+e.message+' 캡처에서 표 전체가 보이도록 다시 넣어 주세요.','bad');
+    $('dok').textContent='실패';
+  }finally{
+    $('retryBtn').disabled=!sourceImg;
+    setTimeout(()=>$('progressWrap').style.display='none',900);
+  }
+}
+function renderRows(){
+  const b=$('body');
+  if(!rows.length){b.innerHTML='<tr><td colspan="5" style="color:#7b8496">아직 인식된 자료가 없습니다.</td></tr>';calculate();return}
+  b.innerHTML='';
+  rows.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><input type="date" data-i="${i}" data-k="date" value="${r.date}"></td>
+      <td><input type="number" min="0" step="0.5" data-i="${i}" data-k="hours" value="${r.hours ?? 0}"></td>
+      <td><input type="checkbox" data-i="${i}" data-k="meal" ${r.meal?'checked':''}></td>
+      <td title="${r.raw||''}">${(r.date && Number(r.hours)>0)?'<span class="yes">확인</span>':'<span class="no">확인필요</span>'}</td>
+      <td><button class="danger" data-del="${i}" style="padding:5px 8px">삭제</button></td>`;
+    b.appendChild(tr);
+  });
+  b.querySelectorAll('input').forEach(el=>el.oninput=e=>{
+    const i=+e.target.dataset.i,k=e.target.dataset.k;
+    if(k==='date') rows[i][k]=e.target.value;
+    else if(k==='meal') rows[i][k]=e.target.checked;
+    else rows[i][k]=+e.target.value||0;
+    rows[i].ok=true; renderRows();
+  });
+  b.querySelectorAll('[data-del]').forEach(x=>x.onclick=()=>{rows.splice(+x.dataset.del,1);renderRows()});
+  calculate();
+}
+function insuranceValue(A){
+  const rate=(+$('insuranceRate').value||0)/100, raw=A*rate, mode=$('insuranceRound').value;
+  if(mode==='10')return Math.floor(raw/10)*10;
+  if(mode==='1')return Math.floor(raw);
+  if(mode==='round')return Math.round(raw);
+  return raw;
+}
+function calculate(){
+  const valid=rows.filter(r=>r.date).sort((a,b)=>a.date.localeCompare(b.date));
+  const rate=+$('hourRate').value||0, mealRate=+$('mealRate').value||0;
+  const totalHours=valid.reduce((s,r)=>s+(+r.hours||0),0);
+  const workPay=totalHours*rate;
+  const mealDays=valid.filter(r=>r.meal).length;
+  const meal=mealDays*mealRate;
+  let start=parseDate($('contractStart').value),end=parseDate($('contractEnd').value);
+  if(!start&&valid.length)start=parseDate(valid[0].date);
+  if(!end&&valid.length)end=parseDate(valid.at(-1).date);
+
+  let weekly=0,eligible=0, html='';
+  if(start&&end&&end>=start){
+    const cdays=diffDays(start,end)+1;
+    const avg=cdays?totalHours*7/cdays:0;
+    html=`<div class="note">계약기간 평균 주 근로시간: <b>${avg.toFixed(2)}시간</b></div>`;
+    let ws=new Date(start),n=1;
+    while(ws<=end){
+      const we=addDays(ws,6), full=we<=end;
+      const hrs=valid.reduce((s,r)=>{
+        const d=parseDate(r.date);
+        return d>=ws&&d<=we?s+(+r.hours||0):s;
+      },0);
+      const yes=full&&avg>=15&&$('attendance').checked;
+      const pay=yes?Math.min(hrs,40)/40*8*rate:0;
+      if(yes){eligible++;weekly+=pay}
+      const calcHours=Math.min(hrs,40);
+      const formula=yes
+        ? `<div style="margin-top:6px;color:#344054">
+             <b>주휴수당 계산식:</b>
+             ${calcHours}시간 ÷ 40시간 × 8시간 × ${money(rate)}원
+             = <span class="yes">${money(pay)}원</span>
+           </div>`
+        : `<div style="margin-top:6px;color:#667085">
+             <b>주휴수당 계산식:</b> 적용 안 함
+             (${!full?'7일 근로관계 미충족':avg<15?'평균 주 15시간 미만':'개근 요건 미충족'})
+           </div>`;
+      html+=`<div class="weekCard"><b>${n}주차</b> ${ymd(ws)} ~ ${ymd(we)}
+       · 근무 ${hrs}시간 · ${full?'7일 근로관계 충족':'7일 미충족'}
+       · ${yes?`<span class="yes">주휴 ${money(pay)}원</span>`:`<span class="no">주휴 없음</span>`}
+       ${formula}</div>`;
+      ws=addDays(ws,7);n++;
+    }
+  }
+  $('weeks').innerHTML=html||'<div class="note">계약기간을 확인하세요.</div>';
+
+  const A=workPay+weekly, ins=insuranceValue(A), B=meal+ins, net=A-B;
+  $('oStart').textContent=start?ymd(start):'-';$('oEnd').textContent=end?ymd(end):'-';
+  $('oDays').textContent=valid.length;$('oHours').textContent=totalHours;
+  $('oRate').textContent=money(rate);$('oWeeks').textContent=eligible;
+  $('oWeekly').textContent=money(weekly);$('oWork').textContent=money(workPay);
+  $('oA').textContent=money(A);$('oMeal').textContent=money(meal);
+  $('oIns').textContent=money(ins);$('oB').textContent=money(B);$('oNet').textContent=money(net);
+}
+
+async function normalizeClipboardImage(img){
+  // 클립보드는 브라우저/캡처도구에 따라 화면 표시 크기로 축소되거나
+  // JPEG/WebP 표현이 먼저 전달될 수 있어 OCR이 불리할 수 있습니다.
+  // 최소 폭까지 확대하고 흰 배경 + 대비 보정으로 표선/숫자를 선명하게 만듭니다.
+  const sw=img.naturalWidth, sh=img.naturalHeight;
+  const targetMinW=1800;
+  let scale=Math.max(1, targetMinW/sw);
+  scale=Math.min(scale, 2.5);
+
+  const c=document.createElement('canvas');
+  c.width=Math.round(sw*scale);
+  c.height=Math.round(sh*scale);
+  const ctx=c.getContext('2d',{willReadFrequently:true});
+  ctx.fillStyle='#fff';
+  ctx.fillRect(0,0,c.width,c.height);
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality='high';
+  ctx.drawImage(img,0,0,c.width,c.height);
+
+  // 약한 명암 보정: 연한 회색 글자/표선을 살리고 배경은 더 희게.
+  const id=ctx.getImageData(0,0,c.width,c.height);
+  const d=id.data;
+  for(let i=0;i<d.length;i+=4){
+    const a=d[i+3]/255;
+    let r=d[i]*a+255*(1-a), g=d[i+1]*a+255*(1-a), b=d[i+2]*a+255*(1-a);
+    // grayscale + contrast
+    let y=.299*r+.587*g+.114*b;
+    y=(y-128)*1.22+128;
+    // near-white cleanup
+    if(y>242) y=255;
+    y=Math.max(0,Math.min(255,y));
+    d[i]=d[i+1]=d[i+2]=y;
+    d[i+3]=255;
+  }
+  ctx.putImageData(id,0,0);
+
+  const blob=await new Promise(resolve=>c.toBlob(resolve,'image/png',1));
+  return await new Promise((resolve,reject)=>{
+    const u=URL.createObjectURL(blob);
+    const out=new Image();
+    out.onload=()=>{URL.revokeObjectURL(u); resolve(out)};
+    out.onerror=reject;
+    out.src=u;
+  });
+}
+
+function loadFile(f,origin='file'){
+  if(!f||!f.type.startsWith('image/')){setStatus('PNG/JPG 이미지 파일을 넣어 주세요.','bad');return}
+  const u=URL.createObjectURL(f), img=new Image();
+  img.onload=async()=>{
+    URL.revokeObjectURL(u);
+    try{
+      let useImg=img;
+      if(origin==='clipboard'){
+        setStatus(`클립보드 원본 ${img.naturalWidth}×${img.naturalHeight} → OCR용 자동 선명화 중입니다…`);
+        useImg=await normalizeClipboardImage(img);
+      }
+      sourceImg=useImg;gridInfo=null;
+      setStep(1,'done');
+      setStatus(`${origin==='clipboard'?'클립보드 자동보정 완료':'이미지 로드 완료'} (${useImg.naturalWidth}×${useImg.naturalHeight}). 표 자동인식을 시작합니다.`);
+      $('retryBtn').disabled=false;recognize();
+    }catch(err){
+      console.error(err);
+      sourceImg=img;gridInfo=null;
+      setStatus('자동 선명화 중 오류가 있어 원본으로 인식을 진행합니다.');
+      $('retryBtn').disabled=false;recognize();
+    }
+  };
+  img.onerror=()=>{URL.revokeObjectURL(u);setStatus('이미지를 열지 못했습니다.','bad')};
+  img.src=u;
+}
+$('pickBtn').onclick=e=>{e.stopPropagation();$('file').click()};
+$('drop').onclick=e=>{if(!e.target.closest('button'))$('file').click()};
+$('file').onchange=e=>loadFile(e.target.files[0]);
+['dragenter','dragover'].forEach(ev=>window.addEventListener(ev,e=>{
+  e.preventDefault();e.stopPropagation();$('drop').classList.add('drag');if(e.dataTransfer)e.dataTransfer.dropEffect='copy';
+},{passive:false}));
+['dragleave','dragend'].forEach(ev=>window.addEventListener(ev,e=>{$('drop').classList.remove('drag')},{passive:false}));
+window.addEventListener('drop',e=>{
+  e.preventDefault();e.stopPropagation();$('drop').classList.remove('drag');
+  const fs=[...(e.dataTransfer?.files||[])],f=fs.find(x=>x.type.startsWith('image/')); if(f)loadFile(f);
+},{passive:false});
+document.addEventListener('paste',e=>{
+  const it=[...(e.clipboardData?.items||[])].find(x=>x.kind==='file'&&x.type.startsWith('image/'));
+  if(it){e.preventDefault();loadFile(it.getAsFile(),'clipboard')}
+});
+
+async function pasteFromClipboard(){
+  try{
+    if(!navigator.clipboard || !navigator.clipboard.read){
+      setStatus('이 브라우저에서는 버튼식 클립보드 읽기를 지원하지 않습니다. 계산기 화면에서 Ctrl+V를 눌러 주세요.','bad');
+      return false;
+    }
+    const its=await navigator.clipboard.read();
+    for(const it of its){
+      const imageTypes=it.types.filter(x=>x.startsWith('image/'));
+      const t=
+        imageTypes.find(x=>x==='image/png') ||
+        imageTypes.find(x=>x==='image/bmp') ||
+        imageTypes.find(x=>x==='image/webp') ||
+        imageTypes.find(x=>x==='image/jpeg') ||
+        imageTypes[0];
+      if(t){
+        const blob=await it.getType(t);
+        loadFile(new File([blob],'clipboard.'+(t.split('/')[1]||'png'),{type:t}),'clipboard');
+        return true;
+      }
+    }
+    setStatus('클립보드에 이미지가 없습니다. Win+Shift+S로 표를 캡처한 직후 다시 눌러 주세요.','bad');
+    return false;
+  }catch(err){
+    console.error(err);
+    setStatus('클립보드 권한이 차단되었습니다. 브라우저 권한에서 허용하거나 계산기 화면에서 Ctrl+V를 눌러 주세요.','bad');
+    return false;
+  }
+}
+
+function openGuide(){ $('guideOverlay').classList.remove('hidden'); }
+function closeGuide(){ $('guideOverlay').classList.add('hidden'); }
+
+$('guideBtn').onclick=(e)=>{e.stopPropagation();openGuide();};
+$('guideClose').onclick=closeGuide;
+$('guideOverlay').addEventListener('click',e=>{ if(e.target===$('guideOverlay')) closeGuide(); });
+$('guidePaste').onclick=async()=>{
+  closeGuide();
+  await pasteFromClipboard();
+};
+
+$('pasteBtn').onclick=async e=>{
+  e.stopPropagation();
+  await pasteFromClipboard();
+};
+$('retryBtn').onclick=recognize;
+$('clearBtn').onclick=()=>{
+  rows=[];sourceImg=null;gridInfo=null;$('file').value='';
+  $('contractStart').value='';$('contractEnd').value='';$('dy').textContent=$('dx').textContent=$('dd').textContent=$('dok').textContent='-';
+  setStep(1);setStatus('초기화했습니다. 새 캡처를 넣어 주세요.');renderRows();
+};
+$('addRow').onclick=()=>{
+  const last=rows.length?parseDate(rows.at(-1).date):parseDate($('contractStart').value)||new Date();
+  rows.push({date:ymd(addDays(last,1)),hours:0,meal:false,ok:true,raw:'수동입력'});renderRows();
+};
+['hourRate','mealRate','insuranceRate','contractStart','contractEnd','attendance','insuranceRound'].forEach(id=>{
+  $(id).addEventListener('input',calculate);$(id).addEventListener('change',calculate);
+});
+$('copyBtn').onclick=async()=>{
+  const a=['oStart','oEnd','oDays','oHours','oRate','oWeeks','oWeekly','oWork','oA','oMeal','oIns','oB','oNet'].map(id=>$(id).textContent.replaceAll(',',''));
+  const vals=[a[0],a[1],a[2],a[3],a[4],'',a[5],a[6],a[7],a[8],a[9],a[10],a[11],a[12]];
+  await navigator.clipboard.writeText(vals.join('\t'));setStatus('계산 결과 한 줄을 복사했습니다. 엑셀에서 Ctrl+V 하세요.','ok');
+};
+$('csvBtn').onclick=()=>{
+  const head=['시작일','종료일','근무일수','근무시간','단가','유급휴일','주차(일)','주휴수당','근무수당','수당합계A','급식비','고용보험','공제합계B','실지급액'];
+  const ids=['oStart','oEnd','oDays','oHours','oRate',null,'oWeeks','oWeekly','oWork','oA','oMeal','oIns','oB','oNet'];
+  const vals=ids.map(id=>id?$(id).textContent.replaceAll(',',''):'');
+  const blob=new Blob(['\ufeff'+head.join(',')+'\n'+vals.join(',')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='시간강사_자동계산결과.csv';a.click();
+};
+renderRows();calculate();
+setTimeout(openGuide,250);
+</script>
+</body>
+</html>
