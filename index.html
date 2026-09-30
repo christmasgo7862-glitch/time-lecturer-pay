@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>시간강사 캡처 자동계산기 PRO v19</title>
+<meta name="author" content="최은영">
+<meta name="description" content="시간강사 수업확인표 캡처·PDF를 읽어 주휴수당과 급여를 자동 계산하고 급여명세서를 발급하는 도구. 제작 최은영.">
+<meta name="copyright" content="© 2026 최은영. 무단 수정·재배포 금지">
+<title>시간강사 캡처 자동계산기 PRO v20</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.4/dist/tesseract.min.js"></script>
 <style>
 :root{
@@ -87,55 +90,51 @@ td input[type=number]{width:70px}
 }
 .guideActions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
 
+/* ── 급여명세서 ───────────────────────────────────────────── */
+.slipWrap{margin-top:14px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:0;overflow:auto}
+.slip{width:820px;margin:0 auto;padding:38px 42px 34px;background:#fff;color:#111;font-size:14px;line-height:1.6}
+.slip .slipTitle{text-align:center;font-size:27px;font-weight:800;letter-spacing:7px;margin:0 0 6px}
+.slip .slipSub{text-align:center;color:#555;font-size:13px;margin-bottom:22px}
+.slip table{width:100%;border-collapse:collapse;margin-bottom:16px}
+.slip th,.slip td{border:1px solid #333;padding:8px 10px;font-size:13.5px}
+.slip th{background:#f1f4f9;font-weight:700;text-align:center;width:130px;white-space:nowrap}
+.slip td.num{text-align:right;font-variant-numeric:tabular-nums}
+.slip .secTitle{font-weight:800;font-size:15px;margin:20px 0 8px;padding-left:3px;border-left:4px solid #333}
+.slip .netRow th,.slip .netRow td{background:#eef2ff;font-weight:800;font-size:15.5px}
+.slip .slipNote{font-size:12px;color:#555;line-height:1.65;margin-top:6px}
+.slip .signArea{margin-top:34px;text-align:center}
+.slip .signStmt{font-size:15px;margin-bottom:16px}
+.slip .signDate{font-size:16px;letter-spacing:2px;margin-bottom:22px}
+.slip .issuer{position:relative;display:inline-block;font-size:18px;font-weight:800;letter-spacing:3px;padding-right:96px}
+.slip .sealImg{position:absolute;right:0;top:50%;transform:translateY(-50%);width:84px;height:84px;object-fit:contain;mix-blend-mode:multiply}
+.slip .slipFoot{margin-top:26px;border-top:1px dashed #bbb;padding-top:10px;font-size:11.5px;color:#777;text-align:center}
+.sealBox{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px}
+.sealPrev{width:64px;height:64px;border:1px dashed var(--line);border-radius:8px;object-fit:contain;background:#fff}
+
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff !important}
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+  .wrap{padding:0 !important;max-width:none !important}
+  .wrap > *{display:none !important}
+  #printRoot{display:block !important}
+  #guideOverlay{display:none !important}
+  .slipWrap{border:0;margin:0;overflow:visible}
+  .slip{width:auto;padding:0;font-size:13px}
+  .slip .slipTitle{font-size:25px}
+  .slip table{page-break-inside:auto}
+  .slip tr{page-break-inside:avoid}
+  .slip .signArea{page-break-inside:avoid}
+}
+#printRoot{display:none}
+
 @media(max-width:920px){.grid{grid-template-columns:1fr}.diag{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:540px){.wrap{padding:16px 9px}.row{grid-template-columns:1fr}.diag{grid-template-columns:1fr}h1{font-size:24px}}
-
-/* 급여명세서 */
-.salary-card{margin-top:17px}.salary-card h2{margin-bottom:8px}
-.salary-fields{margin-top:16px}.salary-fields input[type=file]{font-size:13px}
-.seal-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.seal-thumb{width:76px;height:76px;object-fit:contain;background:#fff;border:1px solid var(--line);padding:5px}
-.salary-message{margin-top:12px;line-height:1.6;font-size:13px;color:var(--muted)}
-.salary-message.error{color:var(--bad)}
-button:disabled{opacity:.5;cursor:not-allowed}
-.salary-preview-wrap{margin-top:20px;overflow:auto;background:#eef2f6;border-radius:10px;padding:18px}
-.salary-sheet{max-width:760px;margin:0 auto;background:#fff;color:#111;padding:32px 38px;font-size:13px;line-height:1.55}
-.salary-sheet h3{font-size:25px;margin:0 0 6px;text-align:center;color:#000}
-.salary-sheet .salary-period{text-align:center;margin:0 0 23px;color:#333}
-.salary-sheet table{table-layout:fixed;margin:0 0 20px;width:100%}
-.salary-sheet th,.salary-sheet td{white-space:normal;overflow-wrap:anywhere;border:1px solid #d9d9d9;padding:9px 8px;font-size:13px}
-.salary-sheet th{background:#f4f4f4;color:#111}
-.salary-sheet h4{font-size:14px;margin:16px 0 9px;color:#000}
-.salary-sheet .salary-net th,.salary-sheet .salary-net td{font-weight:800;background:#f4f4f4}
-.salary-sheet .salary-formulas p{margin:4px 0}
-.salary-sheet .salary-issued{margin:23px 0 19px}
-.salary-signature{display:flex;justify-content:flex-end;align-items:center;gap:16px;min-height:98px}
-.salary-signature strong{font-size:22px;overflow-wrap:anywhere;max-width:calc(100% - 112px)}
-.salary-seal{width:94px;height:94px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.salary-seal img{width:100%;height:100%;object-fit:contain}
-.salary-seal.empty{border:1px solid #ccc;font-size:12px;color:#999}
-@media(max-width:540px){.salary-preview-wrap{padding:8px}.salary-sheet{padding:22px 14px}.salary-sheet h3{font-size:22px}.salary-sheet th,.salary-sheet td{font-size:11px;padding:7px 4px}.salary-signature strong{font-size:18px}}
-@page{size:A4 portrait;margin:14mm}
-@media print{
-  html,body{background:#fff!important;color:#000!important}
-  .wrap{padding:0;max-width:none}
-  .wrap> :not(#salaryCard){display:none!important}
-  #salaryCard{border:0;border-radius:0;box-shadow:none;padding:0;margin:0}
-  #salaryCard> :not(#salaryPreviewWrap){display:none!important}
-  #salaryPreviewWrap{display:block!important;background:none;padding:0;overflow:visible;margin:0;border:0}
-  .salary-sheet{padding:0;margin:0;max-width:none;font-size:11pt;line-height:1.4}
-  .salary-sheet h3{font-size:21pt}.salary-sheet th,.salary-sheet td{font-size:10pt;padding:7px 6px}
-  .salary-sheet table{margin-bottom:16px}.salary-sheet h4{font-size:11pt}
-  .salary-signature{break-inside:avoid;page-break-inside:avoid}
-  .salary-signature strong{font-size:18pt}.salary-seal{width:28mm;height:28mm}
-  .salary-sheet tr{break-inside:avoid;page-break-inside:avoid}
-}
-
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>시간강사 캡처 자동계산기 PRO v19</h1>
+  <h1>시간강사 캡처 자동계산기 PRO v20</h1>
   <div class="lead">
     이번 버전은 <b>표 전체 한글 OCR에 의존하지 않습니다.</b>
     이미지/PDF의 <b>실제 표 가로범위를 먼저 찾고 가로·세로 표선을 검출</b>한 뒤, 날짜와 맨 아래 <b>계</b> 행을 읽습니다. <b>‘계’ 숫자를 수업시간</b>으로 사용하고, 점심은 <b>급식비 공제 체크</b>로만 처리합니다. 캡처 이미지는 인식이 끝나면 화면과 메모리에서 자동 삭제됩니다. 따라서 학교 수업확인표처럼 선이 있는 표에 훨씬 안정적으로 작동합니다.
@@ -271,26 +270,66 @@ button:disabled{opacity:.5;cursor:not-allowed}
     </div>
   </section>
 
-
-  <section class="card salary-card" id="salaryCard" aria-labelledby="salaryTitle">
-    <h2 id="salaryTitle">⑥ 급여명세서 만들기</h2>
-    <div class="note">계산 결과를 확인한 뒤 학교명·성명·생년월일을 입력하세요. 직인을 넣어 인쇄하거나, PDF로 저장해 강사 본인에게 전달할 수 있습니다.</div>
-    <div class="row salary-fields">
-      <div class="field"><label for="salarySchool">학교명</label><input id="salarySchool" type="text" placeholder="예: 와부초등학교" maxlength="80" required autocomplete="off"></div>
-      <div class="field"><label for="salaryName">성명</label><input id="salaryName" type="text" placeholder="강사 성명" maxlength="40" required autocomplete="off"></div>
-      <div class="field"><label for="salaryBirth">생년월일</label><input id="salaryBirth" type="date" min="1900-01-01" required autocomplete="off"></div>
-      <div class="field"><label for="salaryIssue">발급일</label><input id="salaryIssue" type="date" required><span class="note">오늘 날짜가 자동으로 들어갑니다.</span></div>
-      <div class="field"><label for="salarySealFile">학교장 직인 이미지 선택 사항</label><input id="salarySealFile" type="file" accept="image/png,image/jpeg,image/webp"><span class="note">PNG·JPG·WEBP, 최대 5MB. 이미지가 없으면 빈 직인란을 출력합니다.</span></div>
-      <div class="field"><label>직인 미리보기</label><div class="seal-tools"><img id="salarySealThumb" class="seal-thumb" alt="선택한 직인" hidden><span id="salarySealEmpty" class="note">등록된 직인이 없습니다.</span><button type="button" class="secondary" id="salaryRemoveSeal" disabled>직인 삭제</button></div></div>
+  <section class="card" style="margin-top:17px">
+    <h2>⑥ 급여명세서 발급 <span class="badge">학교명·직인 날인 후 본인 교부</span></h2>
+    <div class="row">
+      <div class="field"><label>학교명</label><input id="slipSchool" type="text" placeholder="예: 와부초등학교"></div>
+      <div class="field"><label>발행인 직위</label><input id="slipIssuer" type="text" value="학교장" placeholder="예: 학교장"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>강사 성명</label><input id="slipName" type="text" placeholder="예: 홍길동"></div>
+      <div class="field"><label>직위·담당</label><input id="slipPos" type="text" value="시간강사" placeholder="예: 시간강사"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>생년월일 또는 사번 <span style="color:#b54708">(임금명세서 필수)</span></label><input id="slipBirth" type="text" placeholder="예: 1979-05-03"></div>
+      <div class="field"><label>임금지급일 <span style="color:#b54708">(임금명세서 필수)</span></label><input id="slipPayDate" type="date"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>은행명</label><input id="slipBank" type="text" placeholder="예: 농협"></div>
+      <div class="field"><label>계좌번호</label><input id="slipAcct" type="text" placeholder="예: 000-0000-0000"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>발급일자</label><input id="slipDate" type="date"></div>
+      <div class="field">
+        <label>일자별 내역 첨부</label>
+        <select id="slipDetail">
+          <option value="1" selected>명세서에 포함</option>
+          <option value="0">포함하지 않음</option>
+        </select>
+      </div>
+    </div>
+    <div class="field" style="margin-top:4px">
+      <label>직인 이미지 (PNG 권장 · 배경이 투명하거나 흰색인 파일)</label>
+      <div class="sealBox">
+        <input id="sealFile" type="file" accept="image/png,image/jpeg,image/webp" style="max-width:320px">
+        <img id="sealPrev" class="sealPrev" alt="직인 미리보기" style="display:none">
+        <button type="button" class="secondary" id="sealClear">직인 제거</button>
+      </div>
+      <div class="sealBox" style="margin-top:8px">
+        <label for="sealSize" style="font-size:13px;font-weight:750">직인 크기</label>
+        <input id="sealSize" type="range" min="56" max="150" step="2" value="84" style="max-width:220px">
+        <span id="sealSizeVal" class="note">84px</span>
+      </div>
+      <div class="note" style="margin-top:7px">직인 파일은 브라우저 안에서만 사용되며 서버로 전송되거나 저장되지 않습니다. 화면을 닫으면 사라집니다.</div>
     </div>
     <div class="btns">
-      <button type="button" class="primary" id="salaryPreviewBtn">급여명세서 미리보기</button>
-      <button type="button" class="green" id="salaryPrintBtn" disabled>인쇄 / PDF 저장</button>
-      <button type="button" class="secondary" id="salaryResetBtn">명세서 정보 초기화</button>
+      <button class="primary" id="slipBuild">급여명세서 만들기</button>
+      <button class="green" id="slipPrint">인쇄 / PDF 저장</button>
+      <button class="secondary" id="slipHide">미리보기 닫기</button>
     </div>
-    <div class="salary-message" id="salaryMessage" role="status" aria-live="polite">생년월일만 표시하며 계좌번호·주민등록번호는 입력하지 않습니다. 이름·생년월일·직인 이미지는 이 화면에서만 사용되며 서버로 전송하지 않습니다.</div>
-    <div class="salary-preview-wrap" id="salaryPreviewWrap" hidden><article id="salaryPreview" class="salary-sheet" aria-label="급여명세서 미리보기"></article></div>
+    <div id="slipHost"></div>
+    <div class="footer">
+      ※ 명세서 금액은 위 ⑤ 계산 결과를 그대로 가져옵니다. 발급 전에 시간단가·급식비·고용보험 설정과 일자별 내역이 맞는지 확인하세요.<br>
+      ※ [인쇄 / PDF 저장]을 누른 뒤 프린터 목록에서 <b>PDF로 저장</b>을 선택하면 파일로 보관·교부할 수 있습니다.
+    </div>
   </section>
+
+  <div class="footer" style="text-align:center;margin-top:18px;color:#7b8496">
+    시간강사 캡처 자동계산기 PRO · 제작 최은영<br>
+    무단 수정·재배포를 금합니다. 계산 결과는 참고용이며 최종 지급액은 학교 급여 담당자의 확인을 받으시기 바랍니다.
+  </div>
+
+<div id="printRoot"></div>
 
 <div id="guideOverlay" class="guideOverlay" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
   <div class="guideModal">
@@ -316,1149 +355,9 @@ button:disabled{opacity:.5;cursor:not-allowed}
 </div>
 
 <script>
-const $=id=>document.getElementById(id);
-let rows=[];
-let sourceImg=null;
-let gridInfo=null;
-let worker=null;
-let pdfDoc=null;
-let pdfFileName="";
-let salaryCalculation=null;
-let salarySealData="";
-let salarySealLoading=false;
-let salarySealVersion=0;
-
-function setStep(n,state){
-  for(let i=1;i<=4;i++){
-    const e=$('s'+i); e.classList.remove('on','done');
-    if(i<n) e.classList.add('done');
-    else if(i===n) e.classList.add(state==='done'?'done':'on');
-  }
-}
-function setStatus(text,type=''){
-  const e=$('status'); e.textContent=text; e.className='statusBox'+(type?' '+type:'');
-}
-function money(v){
-  const n=Number(v)||0;
-  return Math.round(n).toLocaleString('ko-KR');
-}
-function ymd(d){
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-function parseDate(s){
-  if(!s)return null; const [y,m,d]=s.split('-').map(Number);
-  return new Date(y,m-1,d,12);
-}
-function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
-function diffDays(a,b){return Math.round((b-a)/86400000)}
-function median(a){if(!a.length)return 0; const s=[...a].sort((x,y)=>x-y),m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2}
-
-function clusterIndices(arr,gap=3){
-  if(!arr.length)return [];
-  const out=[]; let cur=[arr[0]];
-  for(let i=1;i<arr.length;i++){
-    if(arr[i]-arr[i-1]<=gap)cur.push(arr[i]);
-    else{out.push(Math.round(cur.reduce((a,b)=>a+b,0)/cur.length));cur=[arr[i]]}
-  }
-  out.push(Math.round(cur.reduce((a,b)=>a+b,0)/cur.length));
-  return out;
-}
-function longestRunRow(gray,W,y,thr){
-  let best=0,run=0;
-  let off=y*W;
-  for(let x=0;x<W;x++){
-    if(gray[off+x]<thr){run++;if(run>best)best=run}else run=0;
-  }
-  return best;
-}
-function longestRunCol(gray,W,H,x,y0,y1,thr){
-  let best=0,run=0;
-  for(let y=y0;y<=y1;y++){
-    if(gray[y*W+x]<thr){run++;if(run>best)best=run}else run=0;
-  }
-  return best;
-}
-function chooseHorizontalSequence(centers,H){
-  if(centers.length<6)return centers;
-  let best=[];
-  for(let i=0;i<centers.length;i++){
-    let seq=[centers[i]];
-    for(let j=i+1;j<centers.length;j++){
-      const gap=centers[j]-seq[seq.length-1];
-      if(gap>=12 && gap<=Math.max(95,H*.16)) seq.push(centers[j]);
-      else if(gap>Math.max(95,H*.16)) break;
-    }
-    if(seq.length>best.length)best=seq;
-  }
-  return best.length>=6?best:centers;
-}
-function darkSegmentsOnRow(gray,W,y,thr=215){
-  const segs=[]; let start=-1;
-  for(let x=0;x<W;x++){
-    const dark=gray[y*W+x]<thr;
-    if(dark && start<0) start=x;
-    if((!dark || x===W-1) && start>=0){
-      const end=(!dark)?x-1:x;
-      if(end-start+1>=10) segs.push({x0:start,x1:end,len:end-start+1});
-      start=-1;
-    }
-  }
-  return segs;
-}
-function verticalEvidence(gray,W,H,x,ys,thr=220){
-  const y0=ys[0], y1=ys[ys.length-1];
-  let dark=0,total=0;
-  for(let y=y0;y<=y1;y++){
-    let nearH=false;
-    for(const gy of ys){
-      if(Math.abs(y-gy)<=3){ nearH=true; break; }
-    }
-    if(nearH) continue;
-    total++;
-    if(gray[y*W+x]<thr) dark++;
-  }
-  return total?dark/total:0;
-}
-function reconstructGridLines(xs,left,right,verify){
-  xs=[...xs].sort((a,b)=>a-b);
-  // 표 바깥선 강제 포함
-  if(!xs.length || Math.abs(xs[0]-left)>10) xs.unshift(left);
-  if(Math.abs(xs[xs.length-1]-right)>10) xs.push(right);
-
-  // 중간 선이 빠졌다면 인접 간격의 대표값을 이용하여 보충
-  let changed=true, guard=0;
-  while(changed && guard++<8){
-    changed=false;
-    const gaps=xs.slice(1).map((x,i)=>x-xs[i]).filter(g=>g>20);
-    if(!gaps.length) break;
-    const typical=median(gaps.filter(g=>g<Math.max(...gaps)*.85)) || median(gaps);
-    if(!typical) break;
-    const out=[xs[0]];
-    for(let i=1;i<xs.length;i++){
-      const prev=out[out.length-1], cur=xs[i], gap=cur-prev;
-      if(gap>typical*1.65){
-        const n=Math.round(gap/typical);
-        if(n>=2 && n<=5){
-          // 보간 위치에 실제로 세로선이 있는지 확인한다.
-          // 열 너비가 서로 다른 표(시간열이 좁고 날짜·계열이 넓은 수업확인표)에서
-          // 넓은 칸을 억지로 쪼개 가짜 열을 만들던 문제를 막는다.
-          const made=[]; let ok=true;
-          for(let k=1;k<n;k++){
-            const guess=Math.round(prev+gap*k/n);
-            const snapped=verify?verify(guess):guess;
-            if(snapped==null){ok=false;break}
-            made.push(snapped);
-          }
-          if(ok && made.length){ made.forEach(v=>out.push(v)); changed=true; }
-        }
-      }
-      out.push(cur);
-    }
-    xs=out;
-  }
-
-  // 너무 가까운 중복선 제거
-  const cleaned=[];
-  for(const x of xs){
-    if(!cleaned.length || x-cleaned[cleaned.length-1]>8) cleaned.push(x);
-  }
-  return cleaned;
-}
-function detectGrid(img){
-  const c=document.createElement('canvas');
-  c.width=img.naturalWidth;c.height=img.naturalHeight;
-  const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0);
-  let id;
-  try{
-    id=ctx.getImageData(0,0,c.width,c.height);
-  }catch(secErr){
-    throw new Error('브라우저 보안정책 때문에 이미지 픽셀을 읽지 못했습니다. 이 HTML 파일을 바탕화면에서 바로 열지 말고(주소창이 file:// 로 시작), 간단한 웹서버나 사내 공유 웹페이지에 올려서 열어 주세요.');
-  }
-  const W=c.width,H=c.height;
-  const gray=new Uint8Array(W*H);
-  for(let i=0,j=0;i<id.data.length;i+=4,j++){
-    gray[j]=(id.data[i]*.299+id.data[i+1]*.587+id.data[i+2]*.114)|0;
-  }
-
-  // 가로선
-  let yc=[];
-  for(let y=0;y<H;y++){
-    if(longestRunRow(gray,W,y,220)>W*.22) yc.push(y);
-  }
-  let ys=chooseHorizontalSequence(clusterIndices(yc,3),H);
-  if(ys.length<7){const e=new Error(`가로 표선을 충분히 찾지 못했습니다(${ys.length}개).`);e.diag={ys:ys.length,xs:0,W,H};throw e}
-
-  // 표의 실제 좌우 범위: 검출된 가로선 중 "가장 긴" 한 줄을 기준으로 함
-  let longest=null;
-  for(const y of ys){
-    for(let yy=Math.max(0,y-2); yy<=Math.min(H-1,y+2); yy++){
-      for(const s of darkSegmentsOnRow(gray,W,yy,220)){
-        if(s.len>W*.20 && (!longest || s.len>longest.len)) longest=s;
-      }
-    }
-  }
-  if(!longest){const e=new Error('표의 좌우 경계를 찾지 못했습니다.');e.diag={ys:ys.length,xs:0,W,H};throw e}
-  let tableX0=longest.x0, tableX1=longest.x1;
-
-  // 세로선: 긴 연속선이 아니라 전체 행에서 같은 x가 반복해서 어두운지를 계산
-  const candidates=[];
-  for(let x=Math.max(0,tableX0-5); x<=Math.min(W-1,tableX1+5); x++){
-    if(verticalEvidence(gray,W,H,x,ys,220)>.38) candidates.push(x);
-  }
-  let xs=clusterIndices(candidates,3)
-    .filter(x=>x>=tableX0-10 && x<=tableX1+10);
-
-  const verifyVertical=(guess)=>{
-    let bestX=null,bestV=0;
-    for(let x=Math.max(0,guess-8); x<=Math.min(W-1,guess+8); x++){
-      const v=verticalEvidence(gray,W,H,x,ys,220);
-      if(v>bestV){bestV=v;bestX=x}
-    }
-    return bestV>=.35 ? bestX : null;
-  };
-  xs=reconstructGridLines(xs,tableX0,tableX1,verifyVertical);
-
-  // 하루치 수업확인표는 시간열 + 날짜열 + 계열 = 세로선 4개가 최소 구성이다.
-  if(xs.length<4){const e=new Error(`세로 표선을 충분히 찾지 못했습니다(${xs.length}개). 표의 왼쪽·오른쪽 테두리가 잘리지 않게 캡처해 주세요.`);e.diag={ys:ys.length,xs:xs.length,W,H};throw e}
-
-  // 비정상적으로 많은 세로선은 실제 그리드와 간격이 비슷한 선만 남김
-  if(xs.length>12){
-    const gaps=xs.slice(1).map((x,i)=>x-xs[i]).filter(g=>g>15);
-    const med=median(gaps);
-    const reduced=[xs[0]];
-    for(let i=1;i<xs.length-1;i++){
-      const gl=xs[i]-reduced[reduced.length-1];
-      const gr=xs[i+1]-xs[i];
-      if(gl>med*.45 || gr>med*.45) reduced.push(xs[i]);
-    }
-    reduced.push(xs[xs.length-1]);
-    xs=reduced;
-  }
-
-  return {xs,ys,W,H,canvas:c,tableX0,tableX1};
-}
-function drawPreview(){
-  if(!sourceImg)return;
-  const c=$('previewCanvas'); if(!c) return; const maxW=1200;
-  const scale=Math.min(1,maxW/sourceImg.naturalWidth);
-  c.width=Math.round(sourceImg.naturalWidth*scale);
-  c.height=Math.round(sourceImg.naturalHeight*scale);
-  const ctx=c.getContext('2d');
-  ctx.drawImage(sourceImg,0,0,c.width,c.height);
-  if(gridInfo){
-    ctx.save();
-    ctx.strokeStyle='#2457ff';ctx.lineWidth=Math.max(1,2*scale);
-    for(const y of gridInfo.ys){ctx.beginPath();ctx.moveTo(gridInfo.xs[0]*scale,y*scale);ctx.lineTo(gridInfo.xs.at(-1)*scale,y*scale);ctx.stroke()}
-    for(const x of gridInfo.xs){ctx.beginPath();ctx.moveTo(x*scale,gridInfo.ys[0]*scale);ctx.lineTo(x*scale,gridInfo.ys.at(-1)*scale);ctx.stroke()}
-    ctx.restore();
-  }
-}
-function cropCanvas(img,x0,y0,x1,y1,scale=4,threshold=null){
-  const padX=Math.max(3,(x1-x0)*.035), padY=Math.max(2,(y1-y0)*.10);
-  x0+=padX;x1-=padX;y0+=padY;y1-=padY;
-  const w=Math.max(3,Math.floor(x1-x0)),h=Math.max(3,Math.floor(y1-y0));
-  const c=document.createElement('canvas'); c.width=w*scale;c.height=h*scale;
-  const ctx=c.getContext('2d',{willReadFrequently:true});
-  ctx.fillStyle='white';ctx.fillRect(0,0,c.width,c.height);
-  ctx.drawImage(img,x0,y0,w,h,0,0,c.width,c.height);
-  if(threshold){
-    const id=ctx.getImageData(0,0,c.width,c.height);
-    for(let i=0;i<id.data.length;i+=4){
-      const g=id.data[i]*.299+id.data[i+1]*.587+id.data[i+2]*.114;
-      const v=g<threshold?0:255;
-      id.data[i]=id.data[i+1]=id.data[i+2]=v;
-    }
-    ctx.putImageData(id,0,0);
-  }
-  return c;
-}
-function clearOcrCache(){
-  // tesseract.js는 kor/eng 언어파일을 IndexedDB(keyval-store)에 저장합니다.
-  // 저장이 중간에 끊기면 다음 실행부터 계속 인식에 실패하므로 통째로 지웁니다.
-  return new Promise(resolve=>{
-    try{
-      const req=indexedDB.deleteDatabase('keyval-store');
-      req.onsuccess=req.onerror=req.onblocked=()=>resolve(true);
-      setTimeout(()=>resolve(true),2000);
-    }catch(e){resolve(false)}
-  });
-}
-async function buildWorker(cacheMethod){
-  const w=await Tesseract.createWorker({
-    logger:m=>{
-      if(m.progress!=null){
-        $('progressWrap').style.display='block';
-        $('progress').style.width=Math.max(2,Math.round(m.progress*100))+'%';
-      }
-    },
-    langPath:'https://tessdata.projectnaptha.com/4.0.0',
-    cacheMethod
-  });
-  await w.loadLanguage('kor+eng');
-  await w.initialize('kor+eng');
-  return w;
-}
-async function selfTestWorker(w){
-  // 캐시된 언어파일이 깨지면 오류 없이 '빈 글자'만 돌려주는 경우가 있다.
-  // 그래서 아는 숫자를 직접 그려서 읽혀 보고 엔진이 살아 있는지 확인한다.
-  try{
-    const c=document.createElement('canvas');
-    c.width=560; c.height=170;
-    const x=c.getContext('2d');
-    x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height);
-    x.fillStyle='#000';
-    x.font='bold 112px Arial, "Malgun Gothic", sans-serif';
-    x.textBaseline='middle'; x.textAlign='center';
-    x.fillText('40523', c.width/2, c.height/2+4);
-    await w.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'0123456789'});
-    const r=await w.recognize(c);
-    const t=((r&&r.data&&r.data.text)||'').replace(/\D/g,'');
-    return t.length>=3;
-  }catch(e){
-    console.error('OCR 자가검증 실패:',e);
-    return false;
-  }
-}
-async function getWorker(){
-  if(worker)return worker;
-  setStatus('OCR 엔진을 불러오는 중입니다. 잠시만 기다려 주세요.');
-  let w=null, ok=false;
-  try{
-    w=await buildWorker('write');
-    ok=await selfTestWorker(w);
-  }catch(e1){
-    console.error('OCR 엔진 1차 로드 실패:',e1);
-    ok=false;
-  }
-  if(!ok){
-    setStatus('저장해 둔 OCR 언어파일이 정상 동작하지 않습니다. 캐시를 지우고 새로 내려받는 중입니다… (최초 1회 수 분 걸릴 수 있습니다)');
-    try{ if(w) await w.terminate(); }catch(_){}
-    w=null;
-    await clearOcrCache();
-    w=await buildWorker('refresh');
-    if(!await selfTestWorker(w)){
-      try{ await w.terminate(); }catch(_){}
-      throw new Error('OCR 엔진이 글자를 전혀 읽지 못합니다. 학교망에서 언어파일(tessdata.projectnaptha.com) 접속이 막혀 있는지 확인해 주세요.');
-    }
-    setStatus('OCR 엔진을 새로 내려받았습니다. 인식을 계속합니다.');
-  }
-  worker=w;
-  return worker;
-}
-async function resetOcrEngine(){
-  try{ if(worker) await worker.terminate(); }catch(e){}
-  worker=null;
-  await clearOcrCache();
-  setStatus('OCR 엔진 캐시를 삭제했습니다. 캡처를 다시 넣으면 언어파일을 새로 내려받습니다.','ok');
-}
-async function ocrHeader(canvas){
-  const w=await getWorker();
-  await w.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:''});
-  let r=await w.recognize(canvas);
-  let t=(r.data.text||'').trim().replace(/\s+/g,'');
-  let m=t.match(/(\d{1,2})\s*[\/.]\s*(\d{1,2})(?=\D|$)/);
-  if(m)return {month:+m[1],day:+m[2],raw:t,ok:true};
-
-  // 한글요일 때문에 실패하면 숫자 전용으로 한 번 더
-  await w.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'0123456789/.'});
-  r=await w.recognize(canvas);
-  t=(r.data.text||'').trim().replace(/\s+/g,'');
-  m=t.match(/(\d{1,2})[\/.]([0-9]{1,3})/);
-  if(m){
-    let ds=m[2];
-    while(ds.length>2 || +ds>31)ds=ds.slice(0,-1);
-    if(ds && +m[1]>=1 && +m[1]<=12 && +ds>=1 && +ds<=31)
-      return {month:+m[1],day:+ds,raw:t,ok:false};
-  }
-  return {month:null,day:null,raw:t,ok:false};
-}
-async function ocrNumber(canvas){
-  const w=await getWorker();
-  await w.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'0123456789.'});
-  const r=await w.recognize(canvas);
-  const t=(r.data.text||'').trim().replace(/[Oo]/g,'0').replace(/[Il|]/g,'1');
-  const m=t.match(/\d+(?:\.\d+)?/);
-  return {value:m?+m[0]:null,raw:t,conf:r.data.confidence||0};
-}
-
-function sanitizeDailyHours(v,raw){
-  if(v==null || !Number.isFinite(v)) return null;
-  if(v>=0 && v<=12) return v;
-  const digits=String(raw||'').replace(/\D/g,'');
-  if(!digits) return null;
-  // 61, 71, 51처럼 표선이 1로 붙는 경우
-  if(digits.length>=2){
-    const first=Number(digits[0]), last=Number(digits[digits.length-1]);
-    if(first>=2 && first<=9) return first;
-    if(last>=1 && last<=9) return last;
-  }
-  return null;
-}
-function chooseHours(totalR,lessonR,lunchR){
-  const total=sanitizeDailyHours(totalR.value,totalR.raw);
-  const lesson=sanitizeDailyHours(lessonR.value,lessonR.raw);
-  let lunch=sanitizeDailyHours(lunchR.value,lunchR.raw);
-  if(lunch!=null && lunch>2) lunch=null;
-
-  const derived=(lesson!=null && lunch!=null) ? lesson + (lunch>=1?1:0) : null;
-
-  if(total!=null && derived!=null){
-    if(total===derived) return {hours:total,meal:lunch>=1,ok:true,source:'계=수업+점심'};
-    // 계가 두 자리 오인식 등으로 의심되면 교차검증값 우선
-    if(total>9 && derived<=9) return {hours:derived,meal:lunch>=1,ok:true,source:'교차보정'};
-    // 둘 다 정상범위인데 다르면 계를 우선하되 확인필요
-    return {hours:total,meal:lunch>=1,ok:false,source:`불일치(계:${total}/추정:${derived})`};
-  }
-  if(total!=null) return {hours:total,meal:lunch!=null&&lunch>=1,ok:true,source:'계'};
-  if(derived!=null) return {hours:derived,meal:lunch>=1,ok:true,source:'수업+점심 보완'};
-  if(lesson!=null) return {hours:lesson,meal:false,ok:false,source:'수업행만 인식'};
-  return {hours:0,meal:lunch!=null&&lunch>=1,ok:false,source:'인식실패'};
-}
-function repairDates(list){
-  // 같은 달 내에서 날짜가 역전되는 경우, 숫자 전용 OCR의 요일 잔여 숫자를 잘라 보정
-  for(let i=0;i<list.length;i++){
-    if(!list[i].month||!list[i].day)continue;
-    if(i>0 && list[i-1].month===list[i].month && list[i].day<=list[i-1].day){
-      const s=String(list[i].day);
-      if(s.length===2 && +s[0]>list[i-1].day) list[i].day=+s[0];
-    }
-  }
-  return list;
-}
-function nextSchoolDay(d,dir=1){
-  const x=new Date(d);
-  do{
-    x.setDate(x.getDate()+dir);
-  }while(x.getDay()===0 || x.getDay()===6);
-  return x;
-}
-function fillMissingSchoolDates(headers,year){
-  const first=headers.findIndex(h=>h.month&&h.day);
-  if(first<0) return headers;
-
-  // 앞으로: OCR이 비어 있는 날짜 셀은 다음 평일로 추정
-  let cur=new Date(year,headers[first].month-1,headers[first].day,12);
-  for(let i=first+1;i<headers.length;i++){
-    if(headers[i].month&&headers[i].day){
-      cur=new Date(year,headers[i].month-1,headers[i].day,12);
-    }else{
-      cur=nextSchoolDay(cur,1);
-      headers[i]={month:cur.getMonth()+1,day:cur.getDate(),raw:'날짜 자동추정',ok:false,inferred:true};
-    }
-  }
-
-  // 뒤로
-  cur=new Date(year,headers[first].month-1,headers[first].day,12);
-  for(let i=first-1;i>=0;i--){
-    if(headers[i].month&&headers[i].day){
-      cur=new Date(year,headers[i].month-1,headers[i].day,12);
-    }else{
-      cur=nextSchoolDay(cur,-1);
-      headers[i]={month:cur.getMonth()+1,day:cur.getDate(),raw:'날짜 자동추정',ok:false,inferred:true};
-    }
-  }
-  return headers;
-}
-
-function schoolDaySequence(startDate,count){
-  const out=[new Date(startDate)];
-  let cur=new Date(startDate);
-  while(out.length<count){
-    cur=nextSchoolDay(cur,1);
-    out.push(new Date(cur));
-  }
-  return out;
-}
-function countSchoolDaysInclusive(a,b){
-  let n=0, d=new Date(a);
-  while(d<=b){
-    if(d.getDay()!==0 && d.getDay()!==6) n++;
-    d.setDate(d.getDate()+1);
-  }
-  return n;
-}
-function reconcileDateColumns(headers,year){
-  const known=[];
-  headers.forEach((h,i)=>{
-    if(h.month&&h.day) known.push({i,date:new Date(year,h.month-1,h.day,12)});
-  });
-  if(!known.length) return headers;
-
-  // 첫/마지막 인식 날짜 사이 평일 수가 열 개수와 정확히 맞으면 전체를 그 순서로 확정.
-  if(known.length>=2){
-    const a=known[0].date, b=known[known.length-1].date;
-    if(b>=a && countSchoolDaysInclusive(a,b)===headers.length){
-      const seq=schoolDaySequence(a,headers.length);
-      return headers.map((h,k)=>({
-        month:seq[k].getMonth()+1,
-        day:seq[k].getDate(),
-        raw:h.raw||'날짜 순서보정',
-        ok:!!(h.month&&h.day&&h.month===seq[k].getMonth()+1&&h.day===seq[k].getDate()),
-        inferred:!(h.month&&h.day&&h.month===seq[k].getMonth()+1&&h.day===seq[k].getDate())
-      }));
-    }
-  }
-
-  fillMissingSchoolDates(headers,year);
-  return headers;
-}
-async function recognize(){
-  if(!sourceImg)return;
-  $('retryBtn').disabled=true;
-  $('progressWrap').style.display='block';$('progress').style.width='2%';
-  try{
-    setStep(2);setStatus(`v18 · 인식 이미지 ${sourceImg.naturalWidth}×${sourceImg.naturalHeight} · 표의 가로·세로 선을 찾고 있습니다…`);
-    gridInfo=detectGrid(sourceImg);
-    $('dy').textContent=gridInfo.ys.length;
-    $('dx').textContent=gridInfo.xs.length;
-
-    const xs=gridInfo.xs,ys=gridInfo.ys;
-    const dateCount=xs.length-3; // 왼쪽 시간열 + 날짜열 + 오른쪽 계열
-    if(dateCount<1)throw new Error('날짜 열 개수를 계산하지 못했습니다.');
-    $('dd').textContent=dateCount;
-    setStep(3);setStatus(`표선 검출 성공: 세로선 ${xs.length}개 / 날짜열 ${dateCount}개. 계·수업시간·점심행을 서로 대조하여 인식 중입니다…`);
-
-    const headers=[];
-    for(let j=1;j<=dateCount;j++){
-      let cc=cropCanvas(sourceImg,xs[j],ys[0],xs[j+1],ys[1],9,230);
-      let h=await ocrHeader(cc);
-      if(!h.month || !h.day){
-        cc=cropCanvas(sourceImg,xs[j],ys[0],xs[j+1],ys[1],10,null);
-        h=await ocrHeader(cc);
-      }
-      if(!h.month || !h.day){
-        cc=cropCanvas(sourceImg,xs[j],ys[0],xs[j+1],ys[1],10,205);
-        h=await ocrHeader(cc);
-      }
-      headers.push(h);
-      $('progress').style.width=(10+25*j/dateCount)+'%';
-    }
-    repairDates(headers);
-    reconcileDateColumns(headers,+$('year').value||2026);
-
-    const yLunch0=ys[ys.length-4], yLunch1=ys[ys.length-3];
-    const yLesson0=ys[ys.length-3], yLesson1=ys[ys.length-2];
-    const yTotal0=ys[ys.length-2], yTotal1=ys[ys.length-1];
-
-    const totals=[],lessons=[],lunchDirect=[];
-    for(let j=1;j<=dateCount;j++){
-      let totalC=cropCanvas(sourceImg,xs[j],yTotal0,xs[j+1],yTotal1,9,225);
-      let lessonC=cropCanvas(sourceImg,xs[j],yLesson0,xs[j+1],yLesson1,9,225);
-      let lunchC=cropCanvas(sourceImg,xs[j],yLunch0,xs[j+1],yLunch1,9,230);
-
-      let tr=await ocrNumber(totalC);
-      let sr=await ocrNumber(lessonC);
-      let lr=await ocrNumber(lunchC);
-
-      // 비정상 숫자는 다른 임계값으로 한 번 더 읽음
-      if(sanitizeDailyHours(tr.value,tr.raw)==null){
-        totalC=cropCanvas(sourceImg,xs[j],yTotal0,xs[j+1],yTotal1,11,200);
-        tr=await ocrNumber(totalC);
-      }
-      if(sanitizeDailyHours(sr.value,sr.raw)==null){
-        lessonC=cropCanvas(sourceImg,xs[j],yLesson0,xs[j+1],yLesson1,11,200);
-        sr=await ocrNumber(lessonC);
-      }
-
-      totals.push(tr); lessons.push(sr); lunchDirect.push(lr);
-      $('progress').style.width=(35+50*j/dateCount)+'%';
-    }
-
-    const yr=+$('year').value||2026;
-    const out=[];
-    let okCount=0;
-    for(let i=0;i<dateCount;i++){
-      const h=headers[i];
-      const pick=chooseHours(totals[i],lessons[i],lunchDirect[i]);
-
-      if(h.month&&h.day){
-        const date=`${yr}-${String(h.month).padStart(2,'0')}-${String(h.day).padStart(2,'0')}`;
-        const ok=pick.ok && pick.hours>0 && !h.inferred;
-        if(ok)okCount++;
-        out.push({
-          date,
-          hours:pick.hours,
-          meal:pick.meal,
-          ok,
-          raw:`${h.raw} / 계:${totals[i].raw||'-'} / 수업:${lessons[i].raw||'-'} / 점심:${lunchDirect[i].raw||'-'} / ${pick.source}`
-        });
-      }
-    }
-    if(!out.length)throw new Error('표선은 정상적으로 찾았지만 글자를 하나도 읽지 못했습니다. OCR 엔진 쪽 문제일 가능성이 큽니다. [OCR 엔진 재설치]를 누른 뒤 다시 시도해 주세요.');
-
-    rows=out;
-    rows.sort((a,b)=>a.date.localeCompare(b.date));
-    $('contractStart').value=rows[0].date;
-    $('contractEnd').value=rows.at(-1).date;
-    $('contractEnd').dataset.autoFromSchedule='1';
-    $('dok').textContent=Math.round(okCount/out.length*100)+'%';
-    renderRows();
-    calculate();
-
-    setStep(4,'done');
-    setStatus(`완료: 날짜 ${out.length}일을 읽었습니다. 수업시간과 점심식사 체크만 확인해 주세요. 캡처 이미지는 자동 삭제했습니다.`, 'ok');
-    $('progress').style.width='100%';
-
-    // 개인정보가 포함될 수 있는 캡처 이미지는 인식 완료 즉시 메모리에서 제거
-    sourceImg=null;
-    gridInfo=null;
-    $('file').value='';
-    $('retryBtn').disabled=true;
-  }catch(e){
-    console.error(e);
-    if(e&&e.diag){
-      $('dy').textContent=e.diag.ys;
-      $('dx').textContent=e.diag.xs;
-      $('dd').textContent='-';
-    }
-    const msg=(e&&e.message)?e.message:String(e);
-    setStatus('자동인식 실패 ['+((e&&e.name)||'Error')+'] '+msg+' / 표선 관련 메시지면 캡처에서 표 전체(제목행~계 행)가 잘리지 않게 다시 넣고, 엔진 관련 메시지면 [OCR 엔진 재설치]를 눌러 주세요.','bad');
-    $('dok').textContent='실패';
-  }finally{
-    $('retryBtn').disabled=!(sourceImg||pdfDoc);
-    setTimeout(()=>$('progressWrap').style.display='none',900);
-  }
-}
-function renderRows(){
-  const b=$('body');
-  if(!rows.length){b.innerHTML='<tr><td colspan="5" style="color:#7b8496">아직 인식된 자료가 없습니다.</td></tr>';calculate();return}
-  b.innerHTML='';
-  rows.forEach((r,i)=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td><input type="date" data-i="${i}" data-k="date" value="${r.date}"></td>
-      <td><input type="number" min="0" step="0.5" data-i="${i}" data-k="hours" value="${r.hours ?? 0}"></td>
-      <td><input type="checkbox" data-i="${i}" data-k="meal" ${r.meal?'checked':''}></td>
-      <td title="${r.raw||''}">${r.ok?'<span class="yes">확인</span>':'<span class="no">확인필요</span>'}</td>
-      <td><button class="danger" data-del="${i}" style="padding:5px 8px">삭제</button></td>`;
-    b.appendChild(tr);
-  });
-  b.querySelectorAll('input').forEach(el=>el.oninput=e=>{
-    const i=+e.target.dataset.i,k=e.target.dataset.k;
-    if(k==='date') rows[i][k]=e.target.value;
-    else if(k==='meal') rows[i][k]=e.target.checked;
-    else rows[i][k]=+e.target.value||0;
-    rows[i].ok=true; renderRows();
-  });
-  b.querySelectorAll('[data-del]').forEach(x=>x.onclick=()=>{rows.splice(+x.dataset.del,1);renderRows()});
-  calculate();
-}
-function insuranceValue(A){
-  const rate=(+$('insuranceRate').value||0)/100, raw=A*rate, mode=$('insuranceRound').value;
-  if(mode==='10')return Math.floor(raw/10)*10;
-  if(mode==='1')return Math.floor(raw);
-  if(mode==='round')return Math.round(raw);
-  return raw;
-}
-function calculate(){
-  const valid=rows.filter(r=>r.date).sort((a,b)=>a.date.localeCompare(b.date));
-  const rate=+$('hourRate').value||0, mealRate=+$('mealRate').value||0;
-  const totalHours=valid.reduce((s,r)=>s+(+r.hours||0),0);
-  const workPay=totalHours*rate;
-  const mealDays=valid.filter(r=>r.meal).length;
-  const meal=mealDays*mealRate;
-  let start=parseDate($('contractStart').value),end=parseDate($('contractEnd').value);
-  if(!start&&valid.length)start=parseDate(valid[0].date);
-  if(!end&&valid.length)end=parseDate(valid.at(-1).date);
-
-  let weekly=0,eligible=0, html='', salaryWeeks=[];
-  if(start&&end&&end>=start){
-    const cdays=diffDays(start,end)+1;
-    const avg=cdays?totalHours*7/cdays:0;
-    html=`<div class="note">계약기간 평균 주 근로시간: <b>${avg.toFixed(2)}시간</b></div>`;
-    let ws=new Date(start),n=1;
-    while(ws<=end){
-      const we=addDays(ws,6), full=we<=end;
-      const hrs=valid.reduce((s,r)=>{
-        const d=parseDate(r.date);
-        return d>=ws&&d<=we?s+(+r.hours||0):s;
-      },0);
-      const yes=full&&avg>=15&&$('attendance').checked;
-      const pay=yes?Math.min(hrs,40)/40*8*rate:0;
-      if(yes){eligible++;weekly+=pay;salaryWeeks.push({start:ymd(ws),end:ymd(we),hours:Math.min(hrs,40),pay});}
-      const calcHours=Math.min(hrs,40);
-      const candidatePay=calcHours/40*8*rate;
-      let formula='';
-      let action='';
-      if(yes){
-        formula=`<div style="margin-top:6px;color:#344054">
-          <b>주휴수당 계산식:</b>
-          ${calcHours}시간 ÷ 40시간 × 8시간 × ${money(rate)}원
-          = <span class="yes">${money(pay)}원</span>
-        </div>`;
-      }else if(!full && hrs>=15 && $('attendance').checked){
-        formula=`<div style="margin-top:6px;color:#b54708">
-          <b>계약 종료일 확인 필요:</b> 실제 근로관계가 <b>${ymd(we)}</b>까지 이어지는 계약이라면
-          주휴수당은 <b>${calcHours}시간 ÷ 40시간 × 8시간 × ${money(rate)}원 = ${money(candidatePay)}원</b>입니다.
-        </div>`;
-        action=`<button type="button" class="primary apply-week-end" data-end="${ymd(we)}"
-          style="margin-top:8px;padding:7px 10px">7일째까지 계약 적용 (${ymd(we)})</button>`;
-      }else{
-        formula=`<div style="margin-top:6px;color:#667085">
-          <b>주휴수당 계산식:</b> 적용 안 함
-          (${!full?'7일 근로관계 미충족':avg<15?'평균 주 15시간 미만':'개근 요건 미충족'})
-        </div>`;
-      }
-      html+=`<div class="weekCard"><b>${n}주차</b> ${ymd(ws)} ~ ${ymd(we)}
-       · 수업 ${hrs}시간 · ${full?'7일 근로관계 충족':'7일 미충족'}
-       · ${yes?`<span class="yes">주휴 ${money(pay)}원</span>`:`<span class="no">주휴 미적용</span>`}
-       ${formula}${action}</div>`;
-      ws=addDays(ws,7);n++;
-    }
-  }
-  $('weeks').innerHTML=html||'<div class="note">계약기간을 확인하세요.</div>';
-  $('weeks').querySelectorAll('.apply-week-end').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      $('contractEnd').value=btn.dataset.end;
-      delete $('contractEnd').dataset.autoFromSchedule;
-      calculate();
-      setStatus(`계약 종료일을 ${btn.dataset.end}로 적용하여 주휴수당을 다시 계산했습니다. 실제 계약서와 일치하는지 확인해 주세요.`, 'ok');
-    });
-  });
-
-  const A=workPay+weekly, ins=insuranceValue(A), B=meal+ins, net=A-B;
-  $('oStart').textContent=start?ymd(start):'-';$('oEnd').textContent=end?ymd(end):'-';
-  $('oDays').textContent=valid.length;$('oHours').textContent=totalHours;
-  $('oRate').textContent=money(rate);$('oWeeks').textContent=eligible;
-  $('oWeekly').textContent=money(weekly);$('oWork').textContent=money(workPay);
-  $('oA').textContent=money(A);$('oMeal').textContent=money(meal);
-  $('oIns').textContent=money(ins);$('oB').textContent=money(B);$('oNet').textContent=money(net);
-  salaryCalculation={start:start?ymd(start):'',end:end?ymd(end):'',days:valid.length,totalHours,rate,workPay,weekly,salaryWeeks,mealDays,mealRate,meal,ins,A,B,net};
-  refreshSalaryPreview();
-}
-
-
-function salaryToday(){
-  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
-  const value=type=>parts.find(p=>p.type===type).value;
-  return `${value('year')}-${value('month')}-${value('day')}`;
-}
-function salaryEscape(value){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function salaryNumber(value){return Number(value).toLocaleString('ko-KR',{maximumFractionDigits:6});}
-function salaryDate(value){const [y,m,d]=value.split('-');return `${y}. ${m}. ${d}.`;}
-function salaryMessage(text,error=false){$('salaryMessage').textContent=text;$('salaryMessage').classList.toggle('error',error);}
-function salaryProblem(){
-  if(!salaryCalculation||!rows.length||salaryCalculation.totalHours<=0)return '먼저 수업확인표를 인식하거나 근무내역을 입력해 주세요.';
-  if(rows.some(r=>!r.date||!r.ok||!Number.isFinite(+r.hours)||+r.hours<0))return '날짜별 수업내역의 날짜·시간과 확인상태를 먼저 확인해 주세요.';
-  const s=salaryCalculation;
-  if(!s.start||!s.end||s.end<s.start||rows.some(r=>r.date<s.start||r.date>s.end))return '계약기간이 모든 근무일을 포함하도록 시작일과 종료일을 확인해 주세요.';
-  if(!Number.isFinite(s.A)||!Number.isFinite(s.B)||s.rate<=0||s.mealRate<0||+$('insuranceRate').value<0||s.net<0)return '단가와 공제 금액을 확인해 주세요.';
-  for(const [id,label] of [['salarySchool','학교명'],['salaryName','성명'],['salaryBirth','생년월일'],['salaryIssue','발급일']]){
-    if(!$(id).value.trim()||!$(id).checkValidity())return `${label}을 정확하게 입력해 주세요.`;
-  }
-  if(salarySealLoading)return '직인 이미지를 읽고 있습니다. 잠시 후 다시 눌러 주세요.';
-  return '';
-}
-function renderSalarySheet(){
-  const s=salaryCalculation, e=salaryEscape, n=salaryNumber;
-  const school=$('salarySchool').value.trim(), name=$('salaryName').value.trim(), birth=$('salaryBirth').value, issue=$('salaryIssue').value;
-  const roundText=$('insuranceRound').selectedOptions[0].textContent;
-  const weeklyFormulas=s.salaryWeeks.length?s.salaryWeeks.map((w,i)=>`<p>${i+1}회 주휴수당 (${e(salaryDate(w.start))} - ${e(salaryDate(w.end))}): ${n(w.hours)}시간 ÷ 40 × 8 × ${n(s.rate)}원 = ${n(w.pay)}원</p>`).join(''):'<p>주휴수당: 0원</p>';
-  $('salaryPreview').innerHTML=`
-    <h3>시간강사 급여명세서</h3>
-    <p class="salary-period">${e(salaryDate(s.start))} - ${e(salaryDate(s.end))} 근무분</p>
-    <table aria-label="강사 기본정보"><colgroup><col style="width:18%"><col style="width:32%"><col style="width:18%"><col style="width:32%"></colgroup><tbody>
-      <tr><th scope="row">성명</th><td>${e(name)}</td><th scope="row">생년월일</th><td>${e(salaryDate(birth))}</td></tr>
-      <tr><th scope="row">소속</th><td>${e(school)}</td><th scope="row">직종</th><td>시간강사</td></tr>
-      <tr><th scope="row">근무일수</th><td>${s.days}일</td><th scope="row">근무시간</th><td>${n(s.totalHours)}시간</td></tr>
-      <tr><th scope="row">시간당 단가</th><td>${n(s.rate)}원</td><th scope="row">급식 공제일수</th><td>${s.mealDays}일</td></tr>
-    </tbody></table>
-    <h4>지급 및 공제 내역</h4>
-    <table aria-label="지급 및 공제 내역"><colgroup><col style="width:20%"><col style="width:50%"><col style="width:30%"></colgroup><thead><tr><th scope="col">구분</th><th scope="col">항목</th><th scope="col">금액 (원)</th></tr></thead><tbody>
-      <tr><td>지급</td><td>근무수당</td><td>${n(s.workPay)}</td></tr>
-      <tr><td>지급</td><td>주휴수당</td><td>${n(s.weekly)}</td></tr>
-      <tr><td>공제</td><td>급식비</td><td>${n(s.meal)}</td></tr>
-      <tr><td>공제</td><td>고용보험 ${n(+$('insuranceRate').value)}%</td><td>${n(s.ins)}</td></tr>
-      <tr><td>합계</td><td>지급총액</td><td>${n(s.A)}</td></tr>
-      <tr><td>합계</td><td>공제총액</td><td>${n(s.B)}</td></tr>
-      <tr class="salary-net"><th scope="row">실지급액</th><td>지급총액 - 공제총액</td><td>${n(s.net)}</td></tr>
-    </tbody></table>
-    <h4>계산 내역</h4>
-    <div class="salary-formulas">
-      <p>근무수당: ${n(s.totalHours)}시간 × ${n(s.rate)}원 = ${n(s.workPay)}원</p>
-      ${weeklyFormulas}
-      <p>급식비: ${s.mealDays}일 × ${n(s.mealRate)}원 = ${n(s.meal)}원</p>
-      <p>고용보험: ${n(s.A)}원 × ${n(+$('insuranceRate').value)}% → ${n(s.ins)}원 (${e(roundText)})</p>
-      <p>실지급액: ${n(s.A)}원 - ${n(s.B)}원 = ${n(s.net)}원</p>
-    </div>
-    <p class="salary-issued">발급일: ${e(issue.slice(0,4))}년 ${Number(issue.slice(5,7))}월 ${Number(issue.slice(8,10))}일</p>
-    <div class="salary-signature"><strong>${e(school)}장</strong><div class="salary-seal ${salarySealData?'':'empty'}">${salarySealData?'<img alt="학교장 직인" src="'+salarySealData+'">':'직인'}</div></div>`;
-}
-function refreshSalaryPreview(){
-  if(!$('salaryPreviewWrap')||$('salaryPreviewWrap').hidden)return;
-  const problem=salaryProblem();
-  $('salaryPrintBtn').disabled=!!problem;
-  if(problem){$('salaryPreview').textContent=problem;salaryMessage(problem,true);return;}
-  renderSalarySheet();salaryMessage('최신 계산 결과가 반영되었습니다. 인쇄 창에서 프린터 또는 PDF로 저장을 선택하세요.');
-}
-function showSalaryPreview(){
-  calculate();
-  const problem=salaryProblem();
-  if(problem){salaryMessage(problem,true);for(const id of ['salarySchool','salaryName','salaryBirth','salaryIssue']){if(!$(id).value.trim()||!$(id).checkValidity()){$(id).reportValidity();$(id).focus();break;}}return false;}
-  $('salaryPreviewWrap').hidden=false;renderSalarySheet();$('salaryPrintBtn').disabled=false;
-  salaryMessage('급여명세서를 만들었습니다. 인쇄 창의 머리글·바닥글은 꺼 주세요. PDF로 저장한 파일을 본인에게 전달할 수 있습니다.');
-  return true;
-}
-function clearSalarySeal(){
-  salarySealVersion++;salarySealLoading=false;salarySealData='';$('salarySealFile').value='';
-  $('salarySealThumb').removeAttribute('src');$('salarySealThumb').hidden=true;$('salarySealEmpty').hidden=false;$('salaryRemoveSeal').disabled=true;
-  refreshSalaryPreview();
-}
-async function loadSalarySeal(file){
-  clearSalarySeal();if(!file)return;
-  if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>5*1024*1024){salaryMessage('직인은 5MB 이하의 PNG·JPG·WEBP 이미지를 선택해 주세요.',true);return;}
-  const version=salarySealVersion,url=URL.createObjectURL(file);salarySealLoading=true;refreshSalaryPreview();
-  try{
-    const img=new Image();img.src=url;await img.decode();
-    if(version!==salarySealVersion)return;
-    if(!img.naturalWidth||!img.naturalHeight||img.naturalWidth*img.naturalHeight>40000000)throw Error('이미지가 너무 크거나 손상되었습니다.');
-    const scale=Math.min(1,900/Math.max(img.naturalWidth,img.naturalHeight));
-    const cv=document.createElement('canvas');cv.width=Math.max(1,Math.round(img.naturalWidth*scale));cv.height=Math.max(1,Math.round(img.naturalHeight*scale));
-    cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);salarySealData=cv.toDataURL('image/png');
-    $('salarySealThumb').src=salarySealData;$('salarySealThumb').hidden=false;$('salarySealEmpty').hidden=true;$('salaryRemoveSeal').disabled=false;
-    salaryMessage('직인을 넣었습니다. 명세서의 직인 위치를 확인해 주세요.');
-  }catch(err){if(version===salarySealVersion)salaryMessage('직인 이미지를 읽지 못했습니다. 다른 PNG·JPG 파일을 선택해 주세요.',true);}
-  finally{URL.revokeObjectURL(url);if(version===salarySealVersion){salarySealLoading=false;refreshSalaryPreview();}}
-}
-function resetSalaryInfo(){
-  $('salaryName').value='';$('salaryBirth').value='';$('salaryIssue').value=salaryToday();clearSalarySeal();
-  $('salaryPreview').replaceChildren();$('salaryPreviewWrap').hidden=true;$('salaryPrintBtn').disabled=true;
-  salaryMessage('성명·생년월일·직인을 지웠습니다. 학교명은 유지됩니다.');
-}
-function initSalary(){
-  $('salaryIssue').value=salaryToday();$('salaryBirth').max=salaryToday();
-  for(const id of ['salarySchool','salaryName','salaryBirth','salaryIssue'])$(id).addEventListener('input',refreshSalaryPreview);
-  $('salaryPreviewBtn').onclick=()=>{if(showSalaryPreview())$('salaryPreviewWrap').scrollIntoView({behavior:'smooth',block:'start'});};
-  $('salaryPrintBtn').onclick=async()=>{
-    if(!showSalaryPreview())return;
-    const img=$('salaryPreview').querySelector('.salary-seal img');
-    if(img)try{await img.decode();}catch{salaryMessage('직인이 준비되지 않았습니다. 다시 선택해 주세요.',true);return;}
-    if(salaryProblem())return;
-    window.print();
-  };
-  $('salarySealFile').onchange=e=>loadSalarySeal(e.target.files[0]);$('salaryRemoveSeal').onclick=clearSalarySeal;$('salaryResetBtn').onclick=resetSalaryInfo;
-  window.addEventListener('beforeprint',()=>{
-    const problem=salaryProblem();
-    if(problem)$('salaryPreview').textContent=problem;
-    else renderSalarySheet();
-  });
-}
-
-async function ensureResolution(img){
-  // 화면 캡처가 작게 잡히면 표선이 흐려져 검출이 실패한다.
-  // 폭이 1600px 미만이면 1800px 기준으로 키워 두고 인식한다.
-  const sw=img.naturalWidth, sh=img.naturalHeight;
-  if(sw>=1600) return img;
-  let scale=Math.min(3, 1800/sw);
-  if(scale<=1.02) return img;
-  const c=document.createElement('canvas');
-  c.width=Math.round(sw*scale); c.height=Math.round(sh*scale);
-  const ctx=c.getContext('2d',{willReadFrequently:true});
-  ctx.fillStyle='#fff'; ctx.fillRect(0,0,c.width,c.height);
-  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-  ctx.drawImage(img,0,0,c.width,c.height);
-  const url=c.toDataURL('image/png');
-  return await new Promise((resolve,reject)=>{
-    const out=new Image();
-    out.onload=()=>resolve(out);
-    out.onerror=reject;
-    out.src=url;
-  });
-}
-async function normalizeClipboardImage(img){
-  // 클립보드는 브라우저/캡처도구에 따라 화면 표시 크기로 축소되거나
-  // JPEG/WebP 표현이 먼저 전달될 수 있어 OCR이 불리할 수 있습니다.
-  // 최소 폭까지 확대하고 흰 배경 + 대비 보정으로 표선/숫자를 선명하게 만듭니다.
-  const sw=img.naturalWidth, sh=img.naturalHeight;
-  const targetMinW=1800;
-  let scale=Math.max(1, targetMinW/sw);
-  scale=Math.min(scale, 2.5);
-
-  const c=document.createElement('canvas');
-  c.width=Math.round(sw*scale);
-  c.height=Math.round(sh*scale);
-  const ctx=c.getContext('2d',{willReadFrequently:true});
-  ctx.fillStyle='#fff';
-  ctx.fillRect(0,0,c.width,c.height);
-  ctx.imageSmoothingEnabled=true;
-  ctx.imageSmoothingQuality='high';
-  ctx.drawImage(img,0,0,c.width,c.height);
-
-  // 약한 명암 보정: 연한 회색 글자/표선을 살리고 배경은 더 희게.
-  const id=ctx.getImageData(0,0,c.width,c.height);
-  const d=id.data;
-  for(let i=0;i<d.length;i+=4){
-    const a=d[i+3]/255;
-    let r=d[i]*a+255*(1-a), g=d[i+1]*a+255*(1-a), b=d[i+2]*a+255*(1-a);
-    // grayscale + contrast
-    let y=.299*r+.587*g+.114*b;
-    y=(y-128)*1.22+128;
-    // near-white cleanup
-    if(y>242) y=255;
-    y=Math.max(0,Math.min(255,y));
-    d[i]=d[i+1]=d[i+2]=y;
-    d[i+3]=255;
-  }
-  ctx.putImageData(id,0,0);
-
-  const url=c.toDataURL('image/png');
-  return await new Promise((resolve,reject)=>{
-    const out=new Image();
-    out.onload=()=>resolve(out);
-    out.onerror=reject;
-    out.src=url;
-  });
-}
-
-
-async function renderPdfPage(pageNo){
-  if(!pdfDoc) return;
-  try{
-    const page=await pdfDoc.getPage(Number(pageNo)||1);
-    const base=page.getViewport({scale:1});
-    // A4 전체 PDF도 표 숫자가 충분히 크게 OCR되도록 약 2400~3000px 폭으로 렌더
-    let scale=Math.max(2.6,2600/base.width);
-    scale=Math.min(scale,4.5);
-    const vp=page.getViewport({scale});
-    const c=document.createElement('canvas');
-    c.width=Math.round(vp.width); c.height=Math.round(vp.height);
-    const ctx=c.getContext('2d',{willReadFrequently:true});
-    ctx.fillStyle='#fff'; ctx.fillRect(0,0,c.width,c.height);
-    await page.render({canvasContext:ctx,viewport:vp,background:'white'}).promise;
-
-    const url=c.toDataURL('image/png');
-    const img=new Image();
-    img.onload=()=>{
-      sourceImg=img; gridInfo=null;
-      setStep(1,'done');
-      setStatus(`PDF ${pageNo}/${pdfDoc.numPages} 페이지를 고해상도로 변환했습니다 (${img.naturalWidth}×${img.naturalHeight}). 자동인식을 시작합니다.`);
-      $('retryBtn').disabled=false;
-      recognize();
-    };
-    img.onerror=()=>setStatus('PDF 페이지를 이미지로 변환하지 못했습니다.','bad');
-    img.src=url;
-  }catch(err){
-    console.error(err);
-    setStatus('PDF 페이지 처리 실패: '+err.message,'bad');
-  }
-}
-let pdfCdnBase='';
-async function loadScriptOnce(url){
-  return new Promise((resolve,reject)=>{
-    const s=document.createElement('script');
-    s.src=url; s.async=true;
-    s.onload=()=>resolve(true);
-    s.onerror=()=>{s.remove();reject(new Error('스크립트 로드 실패'))};
-    document.head.appendChild(s);
-  });
-}
-async function ensurePdfJs(){
-  if(typeof pdfjsLib!=='undefined') return true;
-  const choices=[
-    {
-      script:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
-      worker:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
-    },
-    {
-      script:'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js',
-      worker:'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js'
-    }
-  ];
-  for(const c of choices){
-    try{
-      setStatus('PDF 인식 엔진을 불러오는 중입니다…');
-      await loadScriptOnce(c.script);
-      if(typeof pdfjsLib!=='undefined'){
-        pdfCdnBase=c.worker;
-        pdfjsLib.GlobalWorkerOptions.workerSrc=c.worker;
-        return true;
-      }
-    }catch(e){}
-  }
-  return false;
-}
-async function loadPdfFile(f){
-  try{
-    const ready=await ensurePdfJs();
-    if(!ready){
-      setStatus('PDF 엔진을 불러오지 못했습니다. 학교망에서 PDF 라이브러리 주소가 차단된 경우입니다. 이미지 캡처는 계속 사용할 수 있습니다.','bad');
-      return;
-    }
-    setStatus('PDF를 읽는 중입니다…');
-    const buf=await f.arrayBuffer();
-    pdfDoc=await pdfjsLib.getDocument({data:new Uint8Array(buf),disableAutoFetch:true,disableStream:true}).promise;
-    pdfFileName=f.name||'PDF';
-
-    const sel=$('pdfPage');
-    sel.innerHTML='';
-    for(let i=1;i<=pdfDoc.numPages;i++){
-      const op=document.createElement('option');
-      op.value=i; op.textContent=`${i} 페이지`;
-      sel.appendChild(op);
-    }
-    $('pdfControls').style.display='flex';
-    $('pdfControls').style.flexDirection='column';
-    $('pdfInfo').textContent=`${pdfFileName} · 총 ${pdfDoc.numPages}페이지`;
-    await renderPdfPage(1);
-  }catch(err){
-    console.error(err);
-    setStatus('PDF 파일을 열지 못했습니다: '+err.message,'bad');
-  }
-}
-
-function loadFile(f,origin='file'){
-  if(!f){return}
-  if(f.type==='application/pdf' || /\.pdf$/i.test(f.name||'')){
-    loadPdfFile(f);
-    return;
-  }
-  if(!f.type.startsWith('image/')){setStatus('PNG/JPG 이미지 또는 PDF 파일을 넣어 주세요.','bad');return}
-  pdfDoc=null; pdfFileName=''; $('pdfControls').style.display='none';
-  setStatus('이미지 파일을 읽는 중입니다…');
-  const fr=new FileReader();
-  fr.onerror=()=>setStatus('이미지 파일을 읽지 못했습니다. 파일이 손상되었거나 접근 권한이 없습니다.','bad');
-  fr.onload=()=>{
-  const img=new Image();
-  img.onload=async()=>{
-    try{
-      let useImg=img;
-      if(origin==='clipboard'){
-        setStatus(`클립보드 원본 ${img.naturalWidth}×${img.naturalHeight} → OCR용 자동 선명화 중입니다…`);
-        useImg=await normalizeClipboardImage(img);
-      }else{
-        useImg=await ensureResolution(img);
-      }
-      sourceImg=useImg;gridInfo=null;
-      setStep(1,'done');
-      setStatus(`${origin==='clipboard'?'클립보드 자동보정 완료':'이미지 로드 완료'} (${useImg.naturalWidth}×${useImg.naturalHeight}). 표 자동인식을 시작합니다.`);
-      $('retryBtn').disabled=false;recognize();
-    }catch(err){
-      console.error(err);
-      sourceImg=img;gridInfo=null;
-      setStatus('자동 선명화 중 오류가 있어 원본으로 인식을 진행합니다.');
-      $('retryBtn').disabled=false;recognize();
-    }
-  };
-  img.onerror=()=>setStatus('이미지를 열지 못했습니다. PNG/JPG 파일인지 확인해 주세요.','bad');
-  img.src=fr.result;
-  };
-  fr.readAsDataURL(f);
-}
-$('pickBtn').onclick=e=>{e.stopPropagation();$('file').click()};
-$('drop').onclick=e=>{if(!e.target.closest('button'))$('file').click()};
-$('file').onchange=e=>loadFile(e.target.files[0]);
-['dragenter','dragover'].forEach(ev=>window.addEventListener(ev,e=>{
-  e.preventDefault();e.stopPropagation();$('drop').classList.add('drag');if(e.dataTransfer)e.dataTransfer.dropEffect='copy';
-},{passive:false}));
-['dragleave','dragend'].forEach(ev=>window.addEventListener(ev,e=>{$('drop').classList.remove('drag')},{passive:false}));
-window.addEventListener('drop',e=>{
-  e.preventDefault();e.stopPropagation();$('drop').classList.remove('drag');
-  const fs=[...(e.dataTransfer?.files||[])],f=fs.find(x=>x.type.startsWith('image/')||x.type==='application/pdf'||/\.pdf$/i.test(x.name||'')); if(f)loadFile(f);
-},{passive:false});
-document.addEventListener('paste',e=>{
-  const it=[...(e.clipboardData?.items||[])].find(x=>x.kind==='file'&&x.type.startsWith('image/'));
-  if(it){e.preventDefault();loadFile(it.getAsFile(),'clipboard')}
-});
-
-async function pasteFromClipboard(){
-  try{
-    if(!navigator.clipboard || !navigator.clipboard.read){
-      setStatus('이 브라우저에서는 버튼식 클립보드 읽기를 지원하지 않습니다. 계산기 화면에서 Ctrl+V를 눌러 주세요.','bad');
-      return false;
-    }
-    const its=await navigator.clipboard.read();
-    for(const it of its){
-      const imageTypes=it.types.filter(x=>x.startsWith('image/'));
-      const t=
-        imageTypes.find(x=>x==='image/png') ||
-        imageTypes.find(x=>x==='image/bmp') ||
-        imageTypes.find(x=>x==='image/webp') ||
-        imageTypes.find(x=>x==='image/jpeg') ||
-        imageTypes[0];
-      if(t){
-        const blob=await it.getType(t);
-        loadFile(new File([blob],'clipboard.'+(t.split('/')[1]||'png'),{type:t}),'clipboard');
-        return true;
-      }
-    }
-    setStatus('클립보드에 이미지가 없습니다. Win+Shift+S로 표를 캡처한 직후 다시 눌러 주세요.','bad');
-    return false;
-  }catch(err){
-    console.error(err);
-    setStatus('클립보드 권한이 차단되었습니다. 브라우저 권한에서 허용하거나 계산기 화면에서 Ctrl+V를 눌러 주세요.','bad');
-    return false;
-  }
-}
-
-function openGuide(){ $('guideOverlay').classList.remove('hidden'); }
-function closeGuide(){ $('guideOverlay').classList.add('hidden'); }
-
-$('guideBtn').onclick=(e)=>{e.stopPropagation();openGuide();};
-$('guideClose').onclick=closeGuide;
-$('guideOverlay').addEventListener('click',e=>{ if(e.target===$('guideOverlay')) closeGuide(); });
-$('guidePaste').onclick=async()=>{
-  closeGuide();
-  await pasteFromClipboard();
-};
-
-$('pasteBtn').onclick=async e=>{
-  e.stopPropagation();
-  await pasteFromClipboard();
-};
-$('retryBtn').onclick=()=>{ if(sourceImg) recognize(); else if(pdfDoc) renderPdfPage($('pdfPage').value||1); };
-$('resetOcrBtn').onclick=()=>resetOcrEngine();
-$('pdfRenderBtn').onclick=()=>renderPdfPage($('pdfPage').value||1);
-$('pdfPage').addEventListener('change',()=>renderPdfPage($('pdfPage').value||1));
-$('clearBtn').onclick=()=>{
-  rows=[];sourceImg=null;gridInfo=null;pdfDoc=null;pdfFileName='';$('pdfControls').style.display='none';$('file').value='';
-  $('contractStart').value='';$('contractEnd').value='';delete $('contractEnd').dataset.autoFromSchedule;$('dy').textContent=$('dx').textContent=$('dd').textContent=$('dok').textContent='-';
-  resetSalaryInfo();setStep(1);setStatus('초기화했습니다. 새 캡처를 넣어 주세요.');renderRows();
-};
-$('addRow').onclick=()=>{
-  const last=rows.length?parseDate(rows.at(-1).date):parseDate($('contractStart').value)||new Date();
-  rows.push({date:ymd(addDays(last,1)),hours:0,meal:false,ok:true,raw:'수동입력'});renderRows();
-};
-['hourRate','mealRate','insuranceRate','contractStart','contractEnd','attendance','insuranceRound'].forEach(id=>{
-  $(id).addEventListener('input',()=>{
-    if(id==='contractEnd') delete $('contractEnd').dataset.autoFromSchedule;
-    calculate();
-  });
-  $(id).addEventListener('change',()=>{
-    if(id==='contractEnd') delete $('contractEnd').dataset.autoFromSchedule;
-    calculate();
-  });
-});
-$('copyBtn').onclick=async()=>{
-  const a=['oStart','oEnd','oDays','oHours','oRate','oWeeks','oWeekly','oWork','oA','oMeal','oIns','oB','oNet'].map(id=>$(id).textContent.replaceAll(',',''));
-  const vals=[a[0],a[1],a[2],a[3],a[4],'',a[5],a[6],a[7],a[8],a[9],a[10],a[11],a[12]];
-  await navigator.clipboard.writeText(vals.join('\t'));setStatus('계산 결과 한 줄을 복사했습니다. 엑셀에서 Ctrl+V 하세요.','ok');
-};
-$('csvBtn').onclick=()=>{
-  const head=['시작일','종료일','근무일수','근무시간','단가','유급휴일','주차(일)','주휴수당','근무수당','수당합계A','급식비','고용보험','공제합계B','실지급액'];
-  const ids=['oStart','oEnd','oDays','oHours','oRate',null,'oWeeks','oWeekly','oWork','oA','oMeal','oIns','oB','oNet'];
-  const vals=ids.map(id=>id?$(id).textContent.replaceAll(',',''):'');
-  const blob=new Blob(['\ufeff'+head.join(',')+'\n'+vals.join(',')],{type:'text/csv;charset=utf-8'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='시간강사_자동계산결과.csv';a.click();
-};
-initSalary();renderRows();calculate();
-
-// ── 실행환경 자가진단 ───────────────────────────────────────────
-(function selfCheck(){
-  const msgs=[];
-  if(location.protocol==='file:'){
-    msgs.push('⚠ 이 파일을 file:// 로 직접 열었습니다. 브라우저에 따라 이미지 픽셀 읽기가 차단되어 인식이 실패할 수 있습니다.');
-  }
-  if(typeof Tesseract==='undefined'){
-    msgs.push('⚠ OCR 엔진(tesseract.js)을 불러오지 못했습니다. 인터넷 또는 학교망 차단 여부를 확인해 주세요.');
-  }
-  if(msgs.length){
-    setStatus(msgs.join(' / '),'bad');
-  }else{
-    setStatus('v19 준비 완료. 수업확인표 캡처나 PDF를 넣어 주세요.');
-  }
-})();
-
-setTimeout(openGuide,250);
+/*! 시간강사 캡처 자동계산기 PRO v20 | 제작 최은영 | (c) 2026 최은영. All rights reserved.
+   무단 수정·복제·재배포를 금합니다. 배포본은 난독화되어 있습니다. */
+const $=t=>document.getElementById(t);let rows=[],sourceImg=null,gridInfo=null,worker=null,pdfDoc=null,pdfFileName="";function setStep(t,e){for(let n=1;n<=4;n++){const a=$("s"+n);a.classList.remove("on","done"),n<t?a.classList.add("done"):n===t&&a.classList.add("done"===e?"done":"on")}}function setStatus(t,e=""){const n=$("status");n.textContent=t,n.className="statusBox"+(e?" "+e:"")}function money(t){const e=Number(t)||0;return Math.round(e).toLocaleString("ko-KR")}function ymd(t){return`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`}function parseDate(t){if(!t)return null;const[e,n,a]=t.split("-").map(Number);return new Date(e,n-1,a,12)}function addDays(t,e){const n=new Date(t);return n.setDate(n.getDate()+e),n}function diffDays(t,e){return Math.round((e-t)/864e5)}function median(t){if(!t.length)return 0;const e=[...t].sort((t,e)=>t-e),n=Math.floor(e.length/2);return e.length%2?e[n]:(e[n-1]+e[n])/2}function clusterIndices(t,e=3){if(!t.length)return[];const n=[];let a=[t[0]];for(let o=1;o<t.length;o++)t[o]-t[o-1]<=e?a.push(t[o]):(n.push(Math.round(a.reduce((t,e)=>t+e,0)/a.length)),a=[t[o]]);return n.push(Math.round(a.reduce((t,e)=>t+e,0)/a.length)),n}function longestRunRow(t,e,n,a){let o=0,r=0,s=n*e;for(let n=0;n<e;n++)t[s+n]<a?(r++,r>o&&(o=r)):r=0;return o}function longestRunCol(t,e,n,a,o,r,s){let l=0,i=0;for(let n=o;n<=r;n++)t[n*e+a]<s?(i++,i>l&&(l=i)):i=0;return l}function chooseHorizontalSequence(t,e){if(t.length<6)return t;let n=[];for(let a=0;a<t.length;a++){let o=[t[a]];for(let n=a+1;n<t.length;n++){const a=t[n]-o[o.length-1];if(a>=12&&a<=Math.max(95,.16*e))o.push(t[n]);else if(a>Math.max(95,.16*e))break}o.length>n.length&&(n=o)}return n.length>=6?n:t}function darkSegmentsOnRow(t,e,n,a=215){const o=[];let r=-1;for(let s=0;s<e;s++){const l=t[n*e+s]<a;if(l&&r<0&&(r=s),(!l||s===e-1)&&r>=0){const t=l?s:s-1;t-r+1>=10&&o.push({x0:r,x1:t,len:t-r+1}),r=-1}}return o}function verticalEvidence(t,e,n,a,o,r=220){const s=o[0],l=o[o.length-1];let i=0,d=0;for(let n=s;n<=l;n++){let s=!1;for(const t of o)if(Math.abs(n-t)<=3){s=!0;break}s||(d++,t[n*e+a]<r&&i++)}return d?i/d:0}function reconstructGridLines(t,e,n,a){(!(t=[...t].sort((t,e)=>t-e)).length||Math.abs(t[0]-e)>10)&&t.unshift(e),Math.abs(t[t.length-1]-n)>10&&t.push(n);let o=!0,r=0;for(;o&&r++<8;){o=!1;const e=t.slice(1).map((e,n)=>e-t[n]).filter(t=>t>20);if(!e.length)break;const n=median(e.filter(t=>t<.85*Math.max(...e)))||median(e);if(!n)break;const r=[t[0]];for(let e=1;e<t.length;e++){const s=r[r.length-1],l=t[e],i=l-s;if(i>1.65*n){const t=Math.round(i/n);if(t>=2&&t<=5){const e=[];let n=!0;for(let o=1;o<t;o++){const r=Math.round(s+i*o/t),l=a?a(r):r;if(null==l){n=!1;break}e.push(l)}n&&e.length&&(e.forEach(t=>r.push(t)),o=!0)}}r.push(l)}t=r}const s=[];for(const e of t)(!s.length||e-s[s.length-1]>8)&&s.push(e);return s}function detectGrid(t){const e=document.createElement("canvas");e.width=t.naturalWidth,e.height=t.naturalHeight;const n=e.getContext("2d",{willReadFrequently:!0});let a;n.drawImage(t,0,0);try{a=n.getImageData(0,0,e.width,e.height)}catch(t){throw new Error("브라우저 보안정책 때문에 이미지 픽셀을 읽지 못했습니다. 이 HTML 파일을 바탕화면에서 바로 열지 말고(주소창이 file:// 로 시작), 간단한 웹서버나 사내 공유 웹페이지에 올려서 열어 주세요.")}const o=e.width,r=e.height,s=new Uint8Array(o*r);for(let t=0,e=0;t<a.data.length;t+=4,e++)s[e]=.299*a.data[t]+.587*a.data[t+1]+.114*a.data[t+2]|0;let l=[];for(let t=0;t<r;t++)longestRunRow(s,o,t,220)>.22*o&&l.push(t);let i=chooseHorizontalSequence(clusterIndices(l,3),r);if(i.length<7){const t=new Error(`가로 표선을 충분히 찾지 못했습니다(${i.length}개).`);throw t.diag={ys:i.length,xs:0,W:o,H:r},t}let d=null;for(const t of i)for(let e=Math.max(0,t-2);e<=Math.min(r-1,t+2);e++)for(const t of darkSegmentsOnRow(s,o,e,220))t.len>.2*o&&(!d||t.len>d.len)&&(d=t);if(!d){const t=new Error("표의 좌우 경계를 찾지 못했습니다.");throw t.diag={ys:i.length,xs:0,W:o,H:r},t}let c=d.x0,u=d.x1;const h=[];for(let t=Math.max(0,c-5);t<=Math.min(o-1,u+5);t++)verticalEvidence(s,o,r,t,i,220)>.38&&h.push(t);let g=clusterIndices(h,3).filter(t=>t>=c-10&&t<=u+10);if(g=reconstructGridLines(g,c,u,t=>{let e=null,n=0;for(let a=Math.max(0,t-8);a<=Math.min(o-1,t+8);a++){const t=verticalEvidence(s,o,r,a,i,220);t>n&&(n=t,e=a)}return n>=.35?e:null}),g.length<4){const t=new Error(`세로 표선을 충분히 찾지 못했습니다(${g.length}개). 표의 왼쪽·오른쪽 테두리가 잘리지 않게 캡처해 주세요.`);throw t.diag={ys:i.length,xs:g.length,W:o,H:r},t}if(g.length>12){const t=median(g.slice(1).map((t,e)=>t-g[e]).filter(t=>t>15)),e=[g[0]];for(let n=1;n<g.length-1;n++){const a=g[n]-e[e.length-1],o=g[n+1]-g[n];(a>.45*t||o>.45*t)&&e.push(g[n])}e.push(g[g.length-1]),g=e}return{xs:g,ys:i,W:o,H:r,canvas:e,tableX0:c,tableX1:u}}function drawPreview(){if(!sourceImg)return;const t=$("previewCanvas");if(!t)return;const e=Math.min(1,1200/sourceImg.naturalWidth);t.width=Math.round(sourceImg.naturalWidth*e),t.height=Math.round(sourceImg.naturalHeight*e);const n=t.getContext("2d");if(n.drawImage(sourceImg,0,0,t.width,t.height),gridInfo){n.save(),n.strokeStyle="#2457ff",n.lineWidth=Math.max(1,2*e);for(const t of gridInfo.ys)n.beginPath(),n.moveTo(gridInfo.xs[0]*e,t*e),n.lineTo(gridInfo.xs.at(-1)*e,t*e),n.stroke();for(const t of gridInfo.xs)n.beginPath(),n.moveTo(t*e,gridInfo.ys[0]*e),n.lineTo(t*e,gridInfo.ys.at(-1)*e),n.stroke();n.restore()}}function cropCanvas(t,e,n,a,o,r=4,s=null){const l=Math.max(3,.035*(a-e)),i=Math.max(2,.1*(o-n));e+=l,a-=l,n+=i,o-=i;const d=Math.max(3,Math.floor(a-e)),c=Math.max(3,Math.floor(o-n)),u=document.createElement("canvas");u.width=d*r,u.height=c*r;const h=u.getContext("2d",{willReadFrequently:!0});if(h.fillStyle="white",h.fillRect(0,0,u.width,u.height),h.drawImage(t,e,n,d,c,0,0,u.width,u.height),s){const t=h.getImageData(0,0,u.width,u.height);for(let e=0;e<t.data.length;e+=4){const n=.299*t.data[e]+.587*t.data[e+1]+.114*t.data[e+2]<s?0:255;t.data[e]=t.data[e+1]=t.data[e+2]=n}h.putImageData(t,0,0)}return u}function clearOcrCache(){return new Promise(t=>{try{const e=indexedDB.deleteDatabase("keyval-store");e.onsuccess=e.onerror=e.onblocked=()=>t(!0),setTimeout(()=>t(!0),2e3)}catch(e){t(!1)}})}async function buildWorker(t){const e=await Tesseract.createWorker({logger:t=>{null!=t.progress&&($("progressWrap").style.display="block",$("progress").style.width=Math.max(2,Math.round(100*t.progress))+"%")},langPath:"https://tessdata.projectnaptha.com/4.0.0",cacheMethod:t});return await e.loadLanguage("kor+eng"),await e.initialize("kor+eng"),e}async function selfTestWorker(t){try{const e=document.createElement("canvas");e.width=560,e.height=170;const n=e.getContext("2d");n.fillStyle="#fff",n.fillRect(0,0,e.width,e.height),n.fillStyle="#000",n.font='bold 112px Arial, "Malgun Gothic", sans-serif',n.textBaseline="middle",n.textAlign="center",n.fillText("40523",e.width/2,e.height/2+4),await t.setParameters({tessedit_pageseg_mode:"7",tessedit_char_whitelist:"0123456789"});const a=await t.recognize(e);return(a&&a.data&&a.data.text||"").replace(/\D/g,"").length>=3}catch(t){return!1}}async function getWorker(){if(worker)return worker;setStatus("OCR 엔진을 불러오는 중입니다. 잠시만 기다려 주세요.");let t=null,e=!1;try{t=await buildWorker("write"),e=await selfTestWorker(t)}catch(t){e=!1}if(!e){setStatus("저장해 둔 OCR 언어파일이 정상 동작하지 않습니다. 캐시를 지우고 새로 내려받는 중입니다… (최초 1회 수 분 걸릴 수 있습니다)");try{t&&await t.terminate()}catch(t){}if(t=null,await clearOcrCache(),t=await buildWorker("refresh"),!await selfTestWorker(t)){try{await t.terminate()}catch(t){}throw new Error("OCR 엔진이 글자를 전혀 읽지 못합니다. 학교망에서 언어파일(tessdata.projectnaptha.com) 접속이 막혀 있는지 확인해 주세요.")}setStatus("OCR 엔진을 새로 내려받았습니다. 인식을 계속합니다.")}return worker=t,worker}async function resetOcrEngine(){try{worker&&await worker.terminate()}catch(t){}worker=null,await clearOcrCache(),setStatus("OCR 엔진 캐시를 삭제했습니다. 캡처를 다시 넣으면 언어파일을 새로 내려받습니다.","ok")}async function ocrHeader(t){const e=await getWorker();await e.setParameters({tessedit_pageseg_mode:"7",tessedit_char_whitelist:""});let n=await e.recognize(t),a=(n.data.text||"").trim().replace(/\s+/g,""),o=a.match(/(\d{1,2})\s*[\/.]\s*(\d{1,2})(?=\D|$)/);if(o)return{month:+o[1],day:+o[2],raw:a,ok:!0};if(await e.setParameters({tessedit_pageseg_mode:"7",tessedit_char_whitelist:"0123456789/."}),n=await e.recognize(t),a=(n.data.text||"").trim().replace(/\s+/g,""),o=a.match(/(\d{1,2})[\/.]([0-9]{1,3})/),o){let t=o[2];for(;t.length>2||+t>31;)t=t.slice(0,-1);if(t&&+o[1]>=1&&+o[1]<=12&&+t>=1&&+t<=31)return{month:+o[1],day:+t,raw:a,ok:!1}}return{month:null,day:null,raw:a,ok:!1}}async function ocrNumber(t){const e=await getWorker();await e.setParameters({tessedit_pageseg_mode:"7",tessedit_char_whitelist:"0123456789."});const n=await e.recognize(t),a=(n.data.text||"").trim().replace(/[Oo]/g,"0").replace(/[Il|]/g,"1"),o=a.match(/\d+(?:\.\d+)?/);return{value:o?+o[0]:null,raw:a,conf:n.data.confidence||0}}function sanitizeDailyHours(t,e){if(null==t||!Number.isFinite(t))return null;if(t>=0&&t<=12)return t;const n=String(e||"").replace(/\D/g,"");if(!n)return null;if(n.length>=2){const t=Number(n[0]),e=Number(n[n.length-1]);if(t>=2&&t<=9)return t;if(e>=1&&e<=9)return e}return null}function chooseHours(t,e,n){const a=sanitizeDailyHours(t.value,t.raw),o=sanitizeDailyHours(e.value,e.raw);let r=sanitizeDailyHours(n.value,n.raw);null!=r&&r>2&&(r=null);const s=null!=o&&null!=r?o+(r>=1?1:0):null;return null!=a&&null!=s?a===s?{hours:a,meal:r>=1,ok:!0,source:"계=수업+점심"}:a>9&&s<=9?{hours:s,meal:r>=1,ok:!0,source:"교차보정"}:{hours:a,meal:r>=1,ok:!1,source:`불일치(계:${a}/추정:${s})`}:null!=a?{hours:a,meal:null!=r&&r>=1,ok:!0,source:"계"}:null!=s?{hours:s,meal:r>=1,ok:!0,source:"수업+점심 보완"}:null!=o?{hours:o,meal:!1,ok:!1,source:"수업행만 인식"}:{hours:0,meal:null!=r&&r>=1,ok:!1,source:"인식실패"}}function repairDates(t){for(let e=0;e<t.length;e++)if(t[e].month&&t[e].day&&e>0&&t[e-1].month===t[e].month&&t[e].day<=t[e-1].day){const n=String(t[e].day);2===n.length&&+n[0]>t[e-1].day&&(t[e].day=+n[0])}return t}function nextSchoolDay(t,e=1){const n=new Date(t);do{n.setDate(n.getDate()+e)}while(0===n.getDay()||6===n.getDay());return n}function fillMissingSchoolDates(t,e){const n=t.findIndex(t=>t.month&&t.day);if(n<0)return t;let a=new Date(e,t[n].month-1,t[n].day,12);for(let o=n+1;o<t.length;o++)t[o].month&&t[o].day?a=new Date(e,t[o].month-1,t[o].day,12):(a=nextSchoolDay(a,1),t[o]={month:a.getMonth()+1,day:a.getDate(),raw:"날짜 자동추정",ok:!1,inferred:!0});a=new Date(e,t[n].month-1,t[n].day,12);for(let o=n-1;o>=0;o--)t[o].month&&t[o].day?a=new Date(e,t[o].month-1,t[o].day,12):(a=nextSchoolDay(a,-1),t[o]={month:a.getMonth()+1,day:a.getDate(),raw:"날짜 자동추정",ok:!1,inferred:!0});return t}function schoolDaySequence(t,e){const n=[new Date(t)];let a=new Date(t);for(;n.length<e;)a=nextSchoolDay(a,1),n.push(new Date(a));return n}function countSchoolDaysInclusive(t,e){let n=0,a=new Date(t);for(;a<=e;)0!==a.getDay()&&6!==a.getDay()&&n++,a.setDate(a.getDate()+1);return n}function reconcileDateColumns(t,e){const n=[];if(t.forEach((t,a)=>{t.month&&t.day&&n.push({i:a,date:new Date(e,t.month-1,t.day,12)})}),!n.length)return t;if(n.length>=2){const e=n[0].date,a=n[n.length-1].date;if(a>=e&&countSchoolDaysInclusive(e,a)===t.length){const n=schoolDaySequence(e,t.length);return t.map((t,e)=>({month:n[e].getMonth()+1,day:n[e].getDate(),raw:t.raw||"날짜 순서보정",ok:!(!t.month||!t.day||t.month!==n[e].getMonth()+1||t.day!==n[e].getDate()),inferred:!(t.month&&t.day&&t.month===n[e].getMonth()+1&&t.day===n[e].getDate())}))}}return fillMissingSchoolDates(t,e),t}async function recognize(){if(sourceImg){$("retryBtn").disabled=!0,$("progressWrap").style.display="block",$("progress").style.width="2%";try{setStep(2),setStatus(`v20 · 인식 이미지 ${sourceImg.naturalWidth}×${sourceImg.naturalHeight} · 표의 가로·세로 선을 찾고 있습니다…`),gridInfo=detectGrid(sourceImg),$("dy").textContent=gridInfo.ys.length,$("dx").textContent=gridInfo.xs.length;const t=gridInfo.xs,e=gridInfo.ys,n=t.length-3;if(n<1)throw new Error("날짜 열 개수를 계산하지 못했습니다.");$("dd").textContent=n,setStep(3),setStatus(`표선 검출 성공: 세로선 ${t.length}개 / 날짜열 ${n}개. 계·수업시간·점심행을 서로 대조하여 인식 중입니다…`);const a=[];for(let o=1;o<=n;o++){let r=cropCanvas(sourceImg,t[o],e[0],t[o+1],e[1],9,230),s=await ocrHeader(r);s.month&&s.day||(r=cropCanvas(sourceImg,t[o],e[0],t[o+1],e[1],10,null),s=await ocrHeader(r)),s.month&&s.day||(r=cropCanvas(sourceImg,t[o],e[0],t[o+1],e[1],10,205),s=await ocrHeader(r)),a.push(s),$("progress").style.width=10+25*o/n+"%"}repairDates(a),reconcileDateColumns(a,+$("year").value||2026);const o=e[e.length-4],r=e[e.length-3],s=e[e.length-3],l=e[e.length-2],i=e[e.length-2],d=e[e.length-1],c=[],u=[],h=[];for(let e=1;e<=n;e++){let a=cropCanvas(sourceImg,t[e],i,t[e+1],d,9,225),g=cropCanvas(sourceImg,t[e],s,t[e+1],l,9,225),f=cropCanvas(sourceImg,t[e],o,t[e+1],r,9,230),m=await ocrNumber(a),p=await ocrNumber(g),y=await ocrNumber(f);null==sanitizeDailyHours(m.value,m.raw)&&(a=cropCanvas(sourceImg,t[e],i,t[e+1],d,11,200),m=await ocrNumber(a)),null==sanitizeDailyHours(p.value,p.raw)&&(g=cropCanvas(sourceImg,t[e],s,t[e+1],l,11,200),p=await ocrNumber(g)),c.push(m),u.push(p),h.push(y),$("progress").style.width=35+50*e/n+"%"}const g=+$("year").value||2026,f=[];let m=0;for(let t=0;t<n;t++){const e=a[t],n=chooseHours(c[t],u[t],h[t]);if(e.month&&e.day){const a=`${g}-${String(e.month).padStart(2,"0")}-${String(e.day).padStart(2,"0")}`,o=n.ok&&n.hours>0&&!e.inferred;o&&m++,f.push({date:a,hours:n.hours,meal:n.meal,ok:o,raw:`${e.raw} / 계:${c[t].raw||"-"} / 수업:${u[t].raw||"-"} / 점심:${h[t].raw||"-"} / ${n.source}`})}}if(!f.length)throw new Error("표선은 정상적으로 찾았지만 글자를 하나도 읽지 못했습니다. OCR 엔진 쪽 문제일 가능성이 큽니다. [OCR 엔진 재설치]를 누른 뒤 다시 시도해 주세요.");rows=f,rows.sort((t,e)=>t.date.localeCompare(e.date)),$("contractStart").value=rows[0].date,$("contractEnd").value=rows.at(-1).date,$("contractEnd").dataset.autoFromSchedule="1",$("dok").textContent=Math.round(m/f.length*100)+"%",renderRows(),calculate(),setStep(4,"done"),setStatus(`완료: 날짜 ${f.length}일을 읽었습니다. 수업시간과 점심식사 체크만 확인해 주세요. 캡처 이미지는 자동 삭제했습니다.`,"ok"),$("progress").style.width="100%",sourceImg=null,gridInfo=null,$("file").value="",$("retryBtn").disabled=!0}catch(t){t&&t.diag&&($("dy").textContent=t.diag.ys,$("dx").textContent=t.diag.xs,$("dd").textContent="-");const e=t&&t.message?t.message:String(t);setStatus("자동인식 실패 ["+(t&&t.name||"Error")+"] "+e+" / 표선 관련 메시지면 캡처에서 표 전체(제목행~계 행)가 잘리지 않게 다시 넣고, 엔진 관련 메시지면 [OCR 엔진 재설치]를 눌러 주세요.","bad"),$("dok").textContent="실패"}finally{$("retryBtn").disabled=!(sourceImg||pdfDoc),setTimeout(()=>$("progressWrap").style.display="none",900)}}}function renderRows(){const t=$("body");if(!rows.length)return t.innerHTML='<tr><td colspan="5" style="color:#7b8496">아직 인식된 자료가 없습니다.</td></tr>',void calculate();t.innerHTML="",rows.forEach((e,n)=>{const a=document.createElement("tr");a.innerHTML=`\n      <td><input type="date" data-i="${n}" data-k="date" value="${e.date}"></td>\n      <td><input type="number" min="0" step="0.5" data-i="${n}" data-k="hours" value="${e.hours??0}"></td>\n      <td><input type="checkbox" data-i="${n}" data-k="meal" ${e.meal?"checked":""}></td>\n      <td title="${e.raw||""}">${e.ok?'<span class="yes">확인</span>':'<span class="no">확인필요</span>'}</td>\n      <td><button class="danger" data-del="${n}" style="padding:5px 8px">삭제</button></td>`,t.appendChild(a)}),t.querySelectorAll("input").forEach(t=>t.oninput=t=>{const e=+t.target.dataset.i,n=t.target.dataset.k;rows[e][n]="date"===n?t.target.value:"meal"===n?t.target.checked:+t.target.value||0,rows[e].ok=!0,renderRows()}),t.querySelectorAll("[data-del]").forEach(t=>t.onclick=()=>{rows.splice(+t.dataset.del,1),renderRows()}),calculate()}function insuranceValue(t){const e=t*((+$("insuranceRate").value||0)/100),n=$("insuranceRound").value;return"10"===n?10*Math.floor(e/10):"1"===n?Math.floor(e):"round"===n?Math.round(e):e}function calculate(){const t=rows.filter(t=>t.date).sort((t,e)=>t.date.localeCompare(e.date)),e=+$("hourRate").value||0,n=+$("mealRate").value||0,a=t.reduce((t,e)=>t+(+e.hours||0),0),o=a*e,r=t.filter(t=>t.meal).length,s=r*n;let l=parseDate($("contractStart").value),i=parseDate($("contractEnd").value);!l&&t.length&&(l=parseDate(t[0].date)),!i&&t.length&&(i=parseDate(t.at(-1).date));let d=0,c=0,u="";if(l&&i&&i>=l){const n=diffDays(l,i)+1,o=n?7*a/n:0;u=`<div class="note">계약기간 평균 주 근로시간: <b>${o.toFixed(2)}시간</b></div>`;let r=new Date(l),s=1;for(;r<=i;){const n=addDays(r,6),a=n<=i,l=t.reduce((t,e)=>{const a=parseDate(e.date);return a>=r&&a<=n?t+(+e.hours||0):t},0),h=a&&o>=15&&$("attendance").checked,g=h?Math.min(l,40)/40*8*e:0;h&&(c++,d+=g);const f=Math.min(l,40),m=f/40*8*e;let p="",y="";h?p=`<div style="margin-top:6px;color:#344054">\n          <b>주휴수당 계산식:</b>\n          ${f}시간 ÷ 40시간 × 8시간 × ${money(e)}원\n          = <span class="yes">${money(g)}원</span>\n        </div>`:!a&&l>=15&&$("attendance").checked?(p=`<div style="margin-top:6px;color:#b54708">\n          <b>계약 종료일 확인 필요:</b> 실제 근로관계가 <b>${ymd(n)}</b>까지 이어지는 계약이라면\n          주휴수당은 <b>${f}시간 ÷ 40시간 × 8시간 × ${money(e)}원 = ${money(m)}원</b>입니다.\n        </div>`,y=`<button type="button" class="primary apply-week-end" data-end="${ymd(n)}"\n          style="margin-top:8px;padding:7px 10px">7일째까지 계약 적용 (${ymd(n)})</button>`):p=`<div style="margin-top:6px;color:#667085">\n          <b>주휴수당 계산식:</b> 적용 안 함\n          (${a?o<15?"평균 주 15시간 미만":"개근 요건 미충족":"7일 근로관계 미충족"})\n        </div>`,u+=`<div class="weekCard"><b>${s}주차</b> ${ymd(r)} ~ ${ymd(n)}\n       · 수업 ${l}시간 · ${a?"7일 근로관계 충족":"7일 미충족"}\n       · ${h?`<span class="yes">주휴 ${money(g)}원</span>`:'<span class="no">주휴 미적용</span>'}\n       ${p}${y}</div>`,r=addDays(r,7),s++}}$("weeks").innerHTML=u||'<div class="note">계약기간을 확인하세요.</div>',$("weeks").querySelectorAll(".apply-week-end").forEach(t=>{t.addEventListener("click",()=>{$("contractEnd").value=t.dataset.end,delete $("contractEnd").dataset.autoFromSchedule,calculate(),setStatus(`계약 종료일을 ${t.dataset.end}로 적용하여 주휴수당을 다시 계산했습니다. 실제 계약서와 일치하는지 확인해 주세요.`,"ok")})});const h=o+d,g=insuranceValue(h),f=s+g,m=h-f;$("oStart").textContent=l?ymd(l):"-",$("oEnd").textContent=i?ymd(i):"-",$("oDays").textContent=t.length,$("oHours").textContent=a,$("oRate").textContent=money(e),$("oWeeks").textContent=c,$("oWeekly").textContent=money(d),$("oWork").textContent=money(o),$("oA").textContent=money(h),$("oMeal").textContent=money(s),$("oIns").textContent=money(g),$("oB").textContent=money(f),$("oNet").textContent=money(m),lastCalc={start:l,end:i,days:t.length,totalHours:a,rate:e,mealRate:n,eligible:c,weekly:d,workPay:o,A:h,meal:s,mealDays:r,ins:g,B:f,net:m,rows:t.slice(),insRate:+$("insuranceRate").value||0,insRound:$("insuranceRound").value}}async function ensureResolution(t){const e=t.naturalWidth,n=t.naturalHeight;if(e>=1600)return t;let a=Math.min(3,1800/e);if(a<=1.02)return t;const o=document.createElement("canvas");o.width=Math.round(e*a),o.height=Math.round(n*a);const r=o.getContext("2d",{willReadFrequently:!0});r.fillStyle="#fff",r.fillRect(0,0,o.width,o.height),r.imageSmoothingEnabled=!0,r.imageSmoothingQuality="high",r.drawImage(t,0,0,o.width,o.height);const s=o.toDataURL("image/png");return await new Promise((t,e)=>{const n=new Image;n.onload=()=>t(n),n.onerror=e,n.src=s})}async function normalizeClipboardImage(t){const e=t.naturalWidth,n=t.naturalHeight;let a=Math.max(1,1800/e);a=Math.min(a,2.5);const o=document.createElement("canvas");o.width=Math.round(e*a),o.height=Math.round(n*a);const r=o.getContext("2d",{willReadFrequently:!0});r.fillStyle="#fff",r.fillRect(0,0,o.width,o.height),r.imageSmoothingEnabled=!0,r.imageSmoothingQuality="high",r.drawImage(t,0,0,o.width,o.height);const s=r.getImageData(0,0,o.width,o.height),l=s.data;for(let t=0;t<l.length;t+=4){const e=l[t+3]/255;let n=.299*(l[t]*e+255*(1-e))+.587*(l[t+1]*e+255*(1-e))+.114*(l[t+2]*e+255*(1-e));n=1.22*(n-128)+128,n>242&&(n=255),n=Math.max(0,Math.min(255,n)),l[t]=l[t+1]=l[t+2]=n,l[t+3]=255}r.putImageData(s,0,0);const i=o.toDataURL("image/png");return await new Promise((t,e)=>{const n=new Image;n.onload=()=>t(n),n.onerror=e,n.src=i})}async function renderPdfPage(t){if(pdfDoc)try{const e=await pdfDoc.getPage(Number(t)||1),n=e.getViewport({scale:1});let a=Math.max(2.6,2600/n.width);a=Math.min(a,4.5);const o=e.getViewport({scale:a}),r=document.createElement("canvas");r.width=Math.round(o.width),r.height=Math.round(o.height);const s=r.getContext("2d",{willReadFrequently:!0});s.fillStyle="#fff",s.fillRect(0,0,r.width,r.height),await e.render({canvasContext:s,viewport:o,background:"white"}).promise;const l=r.toDataURL("image/png"),i=new Image;i.onload=()=>{sourceImg=i,gridInfo=null,setStep(1,"done"),setStatus(`PDF ${t}/${pdfDoc.numPages} 페이지를 고해상도로 변환했습니다 (${i.naturalWidth}×${i.naturalHeight}). 자동인식을 시작합니다.`),$("retryBtn").disabled=!1,recognize()},i.onerror=()=>setStatus("PDF 페이지를 이미지로 변환하지 못했습니다.","bad"),i.src=l}catch(t){setStatus("PDF 페이지 처리 실패: "+t.message,"bad")}}let pdfCdnBase="";async function loadScriptOnce(t){return new Promise((e,n)=>{const a=document.createElement("script");a.src=t,a.async=!0,a.onload=()=>e(!0),a.onerror=()=>{a.remove(),n(new Error("스크립트 로드 실패"))},document.head.appendChild(a)})}async function ensurePdfJs(){if("undefined"!=typeof pdfjsLib)return!0;const t=[{script:"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",worker:"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"},{script:"https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js",worker:"https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js"}];for(const e of t)try{if(setStatus("PDF 인식 엔진을 불러오는 중입니다…"),await loadScriptOnce(e.script),"undefined"!=typeof pdfjsLib)return pdfCdnBase=e.worker,pdfjsLib.GlobalWorkerOptions.workerSrc=e.worker,!0}catch(t){}return!1}async function loadPdfFile(t){try{if(!await ensurePdfJs())return void setStatus("PDF 엔진을 불러오지 못했습니다. 학교망에서 PDF 라이브러리 주소가 차단된 경우입니다. 이미지 캡처는 계속 사용할 수 있습니다.","bad");setStatus("PDF를 읽는 중입니다…");const e=await t.arrayBuffer();pdfDoc=await pdfjsLib.getDocument({data:new Uint8Array(e),disableAutoFetch:!0,disableStream:!0}).promise,pdfFileName=t.name||"PDF";const n=$("pdfPage");n.innerHTML="";for(let t=1;t<=pdfDoc.numPages;t++){const e=document.createElement("option");e.value=t,e.textContent=`${t} 페이지`,n.appendChild(e)}$("pdfControls").style.display="flex",$("pdfControls").style.flexDirection="column",$("pdfInfo").textContent=`${pdfFileName} · 총 ${pdfDoc.numPages}페이지`,await renderPdfPage(1)}catch(t){setStatus("PDF 파일을 열지 못했습니다: "+t.message,"bad")}}function loadFile(t,e="file"){if(!t)return;if("application/pdf"===t.type||/\.pdf$/i.test(t.name||""))return void loadPdfFile(t);if(!t.type.startsWith("image/"))return void setStatus("PNG/JPG 이미지 또는 PDF 파일을 넣어 주세요.","bad");pdfDoc=null,pdfFileName="",$("pdfControls").style.display="none",setStatus("이미지 파일을 읽는 중입니다…");const n=new FileReader;n.onerror=()=>setStatus("이미지 파일을 읽지 못했습니다. 파일이 손상되었거나 접근 권한이 없습니다.","bad"),n.onload=()=>{const t=new Image;t.onload=async()=>{try{let n=t;"clipboard"===e?(setStatus(`클립보드 원본 ${t.naturalWidth}×${t.naturalHeight} → OCR용 자동 선명화 중입니다…`),n=await normalizeClipboardImage(t)):n=await ensureResolution(t),sourceImg=n,gridInfo=null,setStep(1,"done"),setStatus(`${"clipboard"===e?"클립보드 자동보정 완료":"이미지 로드 완료"} (${n.naturalWidth}×${n.naturalHeight}). 표 자동인식을 시작합니다.`),$("retryBtn").disabled=!1,recognize()}catch(e){sourceImg=t,gridInfo=null,setStatus("자동 선명화 중 오류가 있어 원본으로 인식을 진행합니다."),$("retryBtn").disabled=!1,recognize()}},t.onerror=()=>setStatus("이미지를 열지 못했습니다. PNG/JPG 파일인지 확인해 주세요.","bad"),t.src=n.result},n.readAsDataURL(t)}async function pasteFromClipboard(){try{if(!navigator.clipboard||!navigator.clipboard.read)return setStatus("이 브라우저에서는 버튼식 클립보드 읽기를 지원하지 않습니다. 계산기 화면에서 Ctrl+V를 눌러 주세요.","bad"),!1;const t=await navigator.clipboard.read();for(const e of t){const t=e.types.filter(t=>t.startsWith("image/")),n=t.find(t=>"image/png"===t)||t.find(t=>"image/bmp"===t)||t.find(t=>"image/webp"===t)||t.find(t=>"image/jpeg"===t)||t[0];if(n){const t=await e.getType(n);return loadFile(new File([t],"clipboard."+(n.split("/")[1]||"png"),{type:n}),"clipboard"),!0}}return setStatus("클립보드에 이미지가 없습니다. Win+Shift+S로 표를 캡처한 직후 다시 눌러 주세요.","bad"),!1}catch(t){return setStatus("클립보드 권한이 차단되었습니다. 브라우저 권한에서 허용하거나 계산기 화면에서 Ctrl+V를 눌러 주세요.","bad"),!1}}function openGuide(){$("guideOverlay").classList.remove("hidden")}function closeGuide(){$("guideOverlay").classList.add("hidden")}$("pickBtn").onclick=t=>{t.stopPropagation(),$("file").click()},$("drop").onclick=t=>{t.target.closest("button")||$("file").click()},$("file").onchange=t=>loadFile(t.target.files[0]),["dragenter","dragover"].forEach(t=>window.addEventListener(t,t=>{t.preventDefault(),t.stopPropagation(),$("drop").classList.add("drag"),t.dataTransfer&&(t.dataTransfer.dropEffect="copy")},{passive:!1})),["dragleave","dragend"].forEach(t=>window.addEventListener(t,t=>{$("drop").classList.remove("drag")},{passive:!1})),window.addEventListener("drop",t=>{t.preventDefault(),t.stopPropagation(),$("drop").classList.remove("drag");const e=[...t.dataTransfer?.files||[]].find(t=>t.type.startsWith("image/")||"application/pdf"===t.type||/\.pdf$/i.test(t.name||""));e&&loadFile(e)},{passive:!1}),document.addEventListener("paste",t=>{const e=[...t.clipboardData?.items||[]].find(t=>"file"===t.kind&&t.type.startsWith("image/"));e&&(t.preventDefault(),loadFile(e.getAsFile(),"clipboard"))}),$("guideBtn").onclick=t=>{t.stopPropagation(),openGuide()},$("guideClose").onclick=closeGuide,$("guideOverlay").addEventListener("click",t=>{t.target===$("guideOverlay")&&closeGuide()}),$("guidePaste").onclick=async()=>{closeGuide(),await pasteFromClipboard()},$("pasteBtn").onclick=async t=>{t.stopPropagation(),await pasteFromClipboard()},$("retryBtn").onclick=()=>{sourceImg?recognize():pdfDoc&&renderPdfPage($("pdfPage").value||1)},$("resetOcrBtn").onclick=()=>resetOcrEngine(),$("pdfRenderBtn").onclick=()=>renderPdfPage($("pdfPage").value||1),$("pdfPage").addEventListener("change",()=>renderPdfPage($("pdfPage").value||1)),$("clearBtn").onclick=()=>{rows=[],sourceImg=null,gridInfo=null,pdfDoc=null,pdfFileName="",$("pdfControls").style.display="none",$("file").value="",$("contractStart").value="",$("contractEnd").value="",delete $("contractEnd").dataset.autoFromSchedule,$("dy").textContent=$("dx").textContent=$("dd").textContent=$("dok").textContent="-",setStep(1),setStatus("초기화했습니다. 새 캡처를 넣어 주세요."),renderRows()},$("addRow").onclick=()=>{const t=rows.length?parseDate(rows.at(-1).date):parseDate($("contractStart").value)||new Date;rows.push({date:ymd(addDays(t,1)),hours:0,meal:!1,ok:!0,raw:"수동입력"}),renderRows()},["hourRate","mealRate","insuranceRate","contractStart","contractEnd","attendance","insuranceRound"].forEach(t=>{$(t).addEventListener("input",()=>{"contractEnd"===t&&delete $("contractEnd").dataset.autoFromSchedule,calculate()}),$(t).addEventListener("change",()=>{"contractEnd"===t&&delete $("contractEnd").dataset.autoFromSchedule,calculate()})}),$("copyBtn").onclick=async()=>{const t=["oStart","oEnd","oDays","oHours","oRate","oWeeks","oWeekly","oWork","oA","oMeal","oIns","oB","oNet"].map(t=>$(t).textContent.replaceAll(",","")),e=[t[0],t[1],t[2],t[3],t[4],"",t[5],t[6],t[7],t[8],t[9],t[10],t[11],t[12]];await navigator.clipboard.writeText(e.join("\t")),setStatus("계산 결과 한 줄을 복사했습니다. 엑셀에서 Ctrl+V 하세요.","ok")},$("csvBtn").onclick=()=>{const t=["oStart","oEnd","oDays","oHours","oRate",null,"oWeeks","oWeekly","oWork","oA","oMeal","oIns","oB","oNet"].map(t=>t?$(t).textContent.replaceAll(",",""):""),e=new Blob(["\ufeff"+["시작일","종료일","근무일수","근무시간","단가","유급휴일","주차(일)","주휴수당","근무수당","수당합계A","급식비","고용보험","공제합계B","실지급액"].join(",")+"\n"+t.join(",")],{type:"text/csv;charset=utf-8"}),n=document.createElement("a");n.href=URL.createObjectURL(e),n.download="시간강사_자동계산결과.csv",n.click()};let lastCalc=null,sealDataUrl="";function esc(t){return String(null==t?"":t).replace(/[&<>"']/g,t=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[t]))}function korDate(t){return t?`${t.getFullYear()}년 ${t.getMonth()+1}월 ${t.getDate()}일`:""}function weekdayKo(t){return["일","월","화","수","목","금","토"][t.getDay()]}function roundNote(t){return"10"===t?" (10원 미만 절사)":"1"===t?" (1원 미만 절사)":"round"===t?" (원 단위 반올림)":""}function buildPayslip(){calculate();const t=lastCalc;if(!t||!t.rows.length)return setStatus("명세서를 만들 근무내역이 없습니다. 먼저 수업확인표를 인식하거나 행을 추가해 주세요.","bad"),!1;const e=$("slipSchool").value.trim(),n=$("slipName").value.trim();if(!e)return setStatus("학교명을 입력해 주세요.","bad"),$("slipSchool").focus(),!1;if(!n)return setStatus("강사 성명을 입력해 주세요.","bad"),$("slipName").focus(),!1;const a=$("slipIssuer").value.trim()||"학교장",o=$("slipPos").value.trim()||"시간강사",r=$("slipBirth").value.trim(),s=$("slipBank").value.trim(),l=$("slipAcct").value.trim(),i=parseDate($("slipDate").value)||new Date,d=parseDate($("slipPayDate").value),c="1"===$("slipDetail").value,u=+$("sealSize").value||84,h=[];r||h.push("생년월일 또는 사번"),d||h.push("임금지급일");const g=t.start&&t.end?`${ymd(t.start)} ~ ${ymd(t.end)}`:"-",f=[s,l].filter(Boolean).join(" ")||"-";let m="";c&&(m=`\n      <div class="secTitle">4. 일자별 근무내역</div>\n      <table>\n        <tr><th style="width:auto">근무일</th><th style="width:auto">수업시간</th><th style="width:auto">급식</th><th style="width:auto">근무수당</th></tr>\n        ${t.rows.map(e=>{const n=parseDate(e.date);return`<tr>\n        <td style="text-align:center">${esc(e.date)}(${n?weekdayKo(n):""})</td>\n        <td class="num">${+e.hours||0}</td>\n        <td style="text-align:center">${e.meal?"○":"-"}</td>\n        <td class="num">${money((+e.hours||0)*t.rate)}</td>\n      </tr>`}).join("")}\n        <tr>\n          <th style="width:auto">합계</th>\n          <td class="num"><b>${t.totalHours}</b></td>\n          <td style="text-align:center"><b>${t.mealDays}일</b></td>\n          <td class="num"><b>${money(t.workPay)}</b></td>\n        </tr>\n      </table>`);const p=sealDataUrl?`<img class="sealImg" src="${sealDataUrl}" alt="직인" style="width:${u}px;height:${u}px">`:"",y=`\n  <div class="slipWrap">\n    <div class="slip">\n      <h1 class="slipTitle">급여명세서</h1>\n      <div class="slipSub">${esc(e)}</div>\n\n      <div class="secTitle">1. 인적사항</div>\n      <table>\n        <tr><th>성명</th><td>${esc(n)}</td><th>직위</th><td>${esc(o)}</td></tr>\n        <tr><th>생년월일·사번</th><td>${esc(r||"-")}</td><th>소속</th><td>${esc(e)}</td></tr>\n        <tr><th>지급기간</th><td>${esc(g)}</td><th>임금지급일</th><td>${d?esc(ymd(d)):"-"}</td></tr>\n        <tr><th>입금계좌</th><td colspan="3">${esc(f)}</td></tr>\n      </table>\n\n      <div class="secTitle">2. 산정근거</div>\n      <table>\n        <tr><th>근무일수</th><td class="num">${t.days}일</td><th>총 수업시간</th><td class="num">${t.totalHours}시간</td></tr>\n        <tr><th>시간단가</th><td class="num">${money(t.rate)}원</td><th>주휴 적용주차</th><td class="num">${t.eligible}주</td></tr>\n      </table>\n\n      <div class="secTitle">3. 지급 및 공제내역</div>\n      <table>\n        <tr><th>지급항목</th><th style="width:auto">금액(원)</th><th>공제항목</th><th style="width:auto">금액(원)</th></tr>\n        <tr><th>근무수당</th><td class="num">${money(t.workPay)}</td><th>급식비</th><td class="num">${money(t.meal)}</td></tr>\n        <tr><th>주휴수당</th><td class="num">${money(t.weekly)}</td><th>고용보험</th><td class="num">${money(t.ins)}</td></tr>\n        <tr><th>지급액 계</th><td class="num"><b>${money(t.A)}</b></td><th>공제액 계</th><td class="num"><b>${money(t.B)}</b></td></tr>\n        <tr class="netRow"><th>실지급액</th><td class="num" colspan="3">${money(t.net)} 원</td></tr>\n      </table>\n      <div class="slipNote">\n        · 근무수당 = 총 수업시간 ${t.totalHours}시간 × ${money(t.rate)}원 = ${money(t.workPay)}원<br>\n        · 주휴수당 = 주별 (수업시간 ÷ 40시간 × 8시간 × ${money(t.rate)}원), 적용 ${t.eligible}주 합계 ${money(t.weekly)}원<br>\n        · 급식비 = 급식 ${t.mealDays}일 × ${money(t.mealRate)}원 = ${money(t.meal)}원<br>\n        · 고용보험 = 지급액 계 ${money(t.A)}원 × ${t.insRate}% = ${money(t.ins)}원${roundNote(t.insRound)}\n      </div>\n\n      ${m}\n\n      <div class="signArea">\n        <div class="signStmt">위와 같이 급여를 지급합니다.</div>\n        <div class="signDate">${korDate(i)}</div>\n        <div class="issuer">${esc(e)} ${esc(a)}${p}</div>\n      </div>\n\n      <div class="slipFoot">본 명세서는 시간강사 캡처 자동계산기(제작 최은영)로 작성되었습니다.</div>\n    </div>\n  </div>`;return $("slipHost").innerHTML=y,$("printRoot").innerHTML=y,h.length?setStatus(`급여명세서를 만들었습니다. 다만 ${h.join(", ")} 항목이 비어 있습니다. 근로기준법상 임금명세서 필수 기재사항이므로 채워서 다시 만들어 주세요.`,"bad"):setStatus("급여명세서를 만들었습니다. 내용을 확인한 뒤 [인쇄 / PDF 저장]을 눌러 주세요.","ok"),!0}$("sealFile").onchange=t=>{const e=t.target.files&&t.target.files[0];if(!e)return;const n=new FileReader;n.onerror=()=>setStatus("직인 이미지를 읽지 못했습니다.","bad"),n.onload=()=>{sealDataUrl=n.result,$("sealPrev").src=sealDataUrl,$("sealPrev").style.display="block",setStatus("직인 이미지를 등록했습니다. [급여명세서 만들기]를 누르면 반영됩니다.","ok")},n.readAsDataURL(e)},$("sealClear").onclick=()=>{sealDataUrl="",$("sealFile").value="",$("sealPrev").removeAttribute("src"),$("sealPrev").style.display="none",setStatus("직인을 제거했습니다.")},$("slipBuild").onclick=()=>buildPayslip(),$("slipHide").onclick=()=>{$("slipHost").innerHTML="",$("printRoot").innerHTML="",setStatus("명세서 미리보기를 닫았습니다.")},$("slipPrint").onclick=()=>{($("printRoot").innerHTML||buildPayslip())&&window.print()},$("sealSize").addEventListener("input",()=>{$("sealSizeVal").textContent=$("sealSize").value+"px",[$("slipHost").querySelector(".sealImg"),$("printRoot").querySelector(".sealImg")].forEach(t=>{t&&(t.style.width=$("sealSize").value+"px",t.style.height=$("sealSize").value+"px")})}),function(){const t=new Date;$("slipDate").value=ymd(t),$("slipPayDate").value=ymd(t)}(),renderRows(),calculate(),function(){const t=[];"file:"===location.protocol&&t.push("⚠ 이 파일을 file:// 로 직접 열었습니다. 브라우저에 따라 이미지 픽셀 읽기가 차단되어 인식이 실패할 수 있습니다."),"undefined"==typeof Tesseract&&t.push("⚠ OCR 엔진(tesseract.js)을 불러오지 못했습니다. 인터넷 또는 학교망 차단 여부를 확인해 주세요."),t.length?setStatus(t.join(" / "),"bad"):setStatus("v20 준비 완료. 수업확인표 캡처나 PDF를 넣어 주세요.")}(),setTimeout(openGuide,250);
 </script>
 </body>
 </html>
