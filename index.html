@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>시간강사 캡처 자동계산기 PRO v18</title>
+<title>시간강사 캡처 자동계산기 PRO v19</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.4/dist/tesseract.min.js"></script>
 <style>
 :root{
@@ -89,11 +89,53 @@ td input[type=number]{width:70px}
 
 @media(max-width:920px){.grid{grid-template-columns:1fr}.diag{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:540px){.wrap{padding:16px 9px}.row{grid-template-columns:1fr}.diag{grid-template-columns:1fr}h1{font-size:24px}}
+
+/* 급여명세서 */
+.salary-card{margin-top:17px}.salary-card h2{margin-bottom:8px}
+.salary-fields{margin-top:16px}.salary-fields input[type=file]{font-size:13px}
+.seal-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.seal-thumb{width:76px;height:76px;object-fit:contain;background:#fff;border:1px solid var(--line);padding:5px}
+.salary-message{margin-top:12px;line-height:1.6;font-size:13px;color:var(--muted)}
+.salary-message.error{color:var(--bad)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.salary-preview-wrap{margin-top:20px;overflow:auto;background:#eef2f6;border-radius:10px;padding:18px}
+.salary-sheet{max-width:760px;margin:0 auto;background:#fff;color:#111;padding:32px 38px;font-size:13px;line-height:1.55}
+.salary-sheet h3{font-size:25px;margin:0 0 6px;text-align:center;color:#000}
+.salary-sheet .salary-period{text-align:center;margin:0 0 23px;color:#333}
+.salary-sheet table{table-layout:fixed;margin:0 0 20px;width:100%}
+.salary-sheet th,.salary-sheet td{white-space:normal;overflow-wrap:anywhere;border:1px solid #d9d9d9;padding:9px 8px;font-size:13px}
+.salary-sheet th{background:#f4f4f4;color:#111}
+.salary-sheet h4{font-size:14px;margin:16px 0 9px;color:#000}
+.salary-sheet .salary-net th,.salary-sheet .salary-net td{font-weight:800;background:#f4f4f4}
+.salary-sheet .salary-formulas p{margin:4px 0}
+.salary-sheet .salary-issued{margin:23px 0 19px}
+.salary-signature{display:flex;justify-content:flex-end;align-items:center;gap:16px;min-height:98px}
+.salary-signature strong{font-size:22px;overflow-wrap:anywhere;max-width:calc(100% - 112px)}
+.salary-seal{width:94px;height:94px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.salary-seal img{width:100%;height:100%;object-fit:contain}
+.salary-seal.empty{border:1px solid #ccc;font-size:12px;color:#999}
+@media(max-width:540px){.salary-preview-wrap{padding:8px}.salary-sheet{padding:22px 14px}.salary-sheet h3{font-size:22px}.salary-sheet th,.salary-sheet td{font-size:11px;padding:7px 4px}.salary-signature strong{font-size:18px}}
+@page{size:A4 portrait;margin:14mm}
+@media print{
+  html,body{background:#fff!important;color:#000!important}
+  .wrap{padding:0;max-width:none}
+  .wrap> :not(#salaryCard){display:none!important}
+  #salaryCard{border:0;border-radius:0;box-shadow:none;padding:0;margin:0}
+  #salaryCard> :not(#salaryPreviewWrap){display:none!important}
+  #salaryPreviewWrap{display:block!important;background:none;padding:0;overflow:visible;margin:0;border:0}
+  .salary-sheet{padding:0;margin:0;max-width:none;font-size:11pt;line-height:1.4}
+  .salary-sheet h3{font-size:21pt}.salary-sheet th,.salary-sheet td{font-size:10pt;padding:7px 6px}
+  .salary-sheet table{margin-bottom:16px}.salary-sheet h4{font-size:11pt}
+  .salary-signature{break-inside:avoid;page-break-inside:avoid}
+  .salary-signature strong{font-size:18pt}.salary-seal{width:28mm;height:28mm}
+  .salary-sheet tr{break-inside:avoid;page-break-inside:avoid}
+}
+
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>시간강사 캡처 자동계산기 PRO v18</h1>
+  <h1>시간강사 캡처 자동계산기 PRO v19</h1>
   <div class="lead">
     이번 버전은 <b>표 전체 한글 OCR에 의존하지 않습니다.</b>
     이미지/PDF의 <b>실제 표 가로범위를 먼저 찾고 가로·세로 표선을 검출</b>한 뒤, 날짜와 맨 아래 <b>계</b> 행을 읽습니다. <b>‘계’ 숫자를 수업시간</b>으로 사용하고, 점심은 <b>급식비 공제 체크</b>로만 처리합니다. 캡처 이미지는 인식이 끝나면 화면과 메모리에서 자동 삭제됩니다. 따라서 학교 수업확인표처럼 선이 있는 표에 훨씬 안정적으로 작동합니다.
@@ -229,6 +271,27 @@ td input[type=number]{width:70px}
     </div>
   </section>
 
+
+  <section class="card salary-card" id="salaryCard" aria-labelledby="salaryTitle">
+    <h2 id="salaryTitle">⑥ 급여명세서 만들기</h2>
+    <div class="note">계산 결과를 확인한 뒤 학교명·성명·생년월일을 입력하세요. 직인을 넣어 인쇄하거나, PDF로 저장해 강사 본인에게 전달할 수 있습니다.</div>
+    <div class="row salary-fields">
+      <div class="field"><label for="salarySchool">학교명</label><input id="salarySchool" type="text" placeholder="예: 와부초등학교" maxlength="80" required autocomplete="off"></div>
+      <div class="field"><label for="salaryName">성명</label><input id="salaryName" type="text" placeholder="강사 성명" maxlength="40" required autocomplete="off"></div>
+      <div class="field"><label for="salaryBirth">생년월일</label><input id="salaryBirth" type="date" min="1900-01-01" required autocomplete="off"></div>
+      <div class="field"><label for="salaryIssue">발급일</label><input id="salaryIssue" type="date" required><span class="note">오늘 날짜가 자동으로 들어갑니다.</span></div>
+      <div class="field"><label for="salarySealFile">학교장 직인 이미지 선택 사항</label><input id="salarySealFile" type="file" accept="image/png,image/jpeg,image/webp"><span class="note">PNG·JPG·WEBP, 최대 5MB. 이미지가 없으면 빈 직인란을 출력합니다.</span></div>
+      <div class="field"><label>직인 미리보기</label><div class="seal-tools"><img id="salarySealThumb" class="seal-thumb" alt="선택한 직인" hidden><span id="salarySealEmpty" class="note">등록된 직인이 없습니다.</span><button type="button" class="secondary" id="salaryRemoveSeal" disabled>직인 삭제</button></div></div>
+    </div>
+    <div class="btns">
+      <button type="button" class="primary" id="salaryPreviewBtn">급여명세서 미리보기</button>
+      <button type="button" class="green" id="salaryPrintBtn" disabled>인쇄 / PDF 저장</button>
+      <button type="button" class="secondary" id="salaryResetBtn">명세서 정보 초기화</button>
+    </div>
+    <div class="salary-message" id="salaryMessage" role="status" aria-live="polite">생년월일만 표시하며 계좌번호·주민등록번호는 입력하지 않습니다. 이름·생년월일·직인 이미지는 이 화면에서만 사용되며 서버로 전송하지 않습니다.</div>
+    <div class="salary-preview-wrap" id="salaryPreviewWrap" hidden><article id="salaryPreview" class="salary-sheet" aria-label="급여명세서 미리보기"></article></div>
+  </section>
+
 <div id="guideOverlay" class="guideOverlay" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
   <div class="guideModal">
     <h3 id="guideTitle">클립보드 한 번에 인식하는 요령</h3>
@@ -260,6 +323,10 @@ let gridInfo=null;
 let worker=null;
 let pdfDoc=null;
 let pdfFileName="";
+let salaryCalculation=null;
+let salarySealData="";
+let salarySealLoading=false;
+let salarySealVersion=0;
 
 function setStep(n,state){
   for(let i=1;i<=4;i++){
@@ -894,7 +961,7 @@ function calculate(){
   if(!start&&valid.length)start=parseDate(valid[0].date);
   if(!end&&valid.length)end=parseDate(valid.at(-1).date);
 
-  let weekly=0,eligible=0, html='';
+  let weekly=0,eligible=0, html='', salaryWeeks=[];
   if(start&&end&&end>=start){
     const cdays=diffDays(start,end)+1;
     const avg=cdays?totalHours*7/cdays:0;
@@ -908,7 +975,7 @@ function calculate(){
       },0);
       const yes=full&&avg>=15&&$('attendance').checked;
       const pay=yes?Math.min(hrs,40)/40*8*rate:0;
-      if(yes){eligible++;weekly+=pay}
+      if(yes){eligible++;weekly+=pay;salaryWeeks.push({start:ymd(ws),end:ymd(we),hours:Math.min(hrs,40),pay});}
       const calcHours=Math.min(hrs,40);
       const candidatePay=calcHours/40*8*rate;
       let formula='';
@@ -956,6 +1023,125 @@ function calculate(){
   $('oWeekly').textContent=money(weekly);$('oWork').textContent=money(workPay);
   $('oA').textContent=money(A);$('oMeal').textContent=money(meal);
   $('oIns').textContent=money(ins);$('oB').textContent=money(B);$('oNet').textContent=money(net);
+  salaryCalculation={start:start?ymd(start):'',end:end?ymd(end):'',days:valid.length,totalHours,rate,workPay,weekly,salaryWeeks,mealDays,mealRate,meal,ins,A,B,net};
+  refreshSalaryPreview();
+}
+
+
+function salaryToday(){
+  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+  const value=type=>parts.find(p=>p.type===type).value;
+  return `${value('year')}-${value('month')}-${value('day')}`;
+}
+function salaryEscape(value){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function salaryNumber(value){return Number(value).toLocaleString('ko-KR',{maximumFractionDigits:6});}
+function salaryDate(value){const [y,m,d]=value.split('-');return `${y}. ${m}. ${d}.`;}
+function salaryMessage(text,error=false){$('salaryMessage').textContent=text;$('salaryMessage').classList.toggle('error',error);}
+function salaryProblem(){
+  if(!salaryCalculation||!rows.length||salaryCalculation.totalHours<=0)return '먼저 수업확인표를 인식하거나 근무내역을 입력해 주세요.';
+  if(rows.some(r=>!r.date||!r.ok||!Number.isFinite(+r.hours)||+r.hours<0))return '날짜별 수업내역의 날짜·시간과 확인상태를 먼저 확인해 주세요.';
+  const s=salaryCalculation;
+  if(!s.start||!s.end||s.end<s.start||rows.some(r=>r.date<s.start||r.date>s.end))return '계약기간이 모든 근무일을 포함하도록 시작일과 종료일을 확인해 주세요.';
+  if(!Number.isFinite(s.A)||!Number.isFinite(s.B)||s.rate<=0||s.mealRate<0||+$('insuranceRate').value<0||s.net<0)return '단가와 공제 금액을 확인해 주세요.';
+  for(const [id,label] of [['salarySchool','학교명'],['salaryName','성명'],['salaryBirth','생년월일'],['salaryIssue','발급일']]){
+    if(!$(id).value.trim()||!$(id).checkValidity())return `${label}을 정확하게 입력해 주세요.`;
+  }
+  if(salarySealLoading)return '직인 이미지를 읽고 있습니다. 잠시 후 다시 눌러 주세요.';
+  return '';
+}
+function renderSalarySheet(){
+  const s=salaryCalculation, e=salaryEscape, n=salaryNumber;
+  const school=$('salarySchool').value.trim(), name=$('salaryName').value.trim(), birth=$('salaryBirth').value, issue=$('salaryIssue').value;
+  const roundText=$('insuranceRound').selectedOptions[0].textContent;
+  const weeklyFormulas=s.salaryWeeks.length?s.salaryWeeks.map((w,i)=>`<p>${i+1}회 주휴수당 (${e(salaryDate(w.start))} - ${e(salaryDate(w.end))}): ${n(w.hours)}시간 ÷ 40 × 8 × ${n(s.rate)}원 = ${n(w.pay)}원</p>`).join(''):'<p>주휴수당: 0원</p>';
+  $('salaryPreview').innerHTML=`
+    <h3>시간강사 급여명세서</h3>
+    <p class="salary-period">${e(salaryDate(s.start))} - ${e(salaryDate(s.end))} 근무분</p>
+    <table aria-label="강사 기본정보"><colgroup><col style="width:18%"><col style="width:32%"><col style="width:18%"><col style="width:32%"></colgroup><tbody>
+      <tr><th scope="row">성명</th><td>${e(name)}</td><th scope="row">생년월일</th><td>${e(salaryDate(birth))}</td></tr>
+      <tr><th scope="row">소속</th><td>${e(school)}</td><th scope="row">직종</th><td>시간강사</td></tr>
+      <tr><th scope="row">근무일수</th><td>${s.days}일</td><th scope="row">근무시간</th><td>${n(s.totalHours)}시간</td></tr>
+      <tr><th scope="row">시간당 단가</th><td>${n(s.rate)}원</td><th scope="row">급식 공제일수</th><td>${s.mealDays}일</td></tr>
+    </tbody></table>
+    <h4>지급 및 공제 내역</h4>
+    <table aria-label="지급 및 공제 내역"><colgroup><col style="width:20%"><col style="width:50%"><col style="width:30%"></colgroup><thead><tr><th scope="col">구분</th><th scope="col">항목</th><th scope="col">금액 (원)</th></tr></thead><tbody>
+      <tr><td>지급</td><td>근무수당</td><td>${n(s.workPay)}</td></tr>
+      <tr><td>지급</td><td>주휴수당</td><td>${n(s.weekly)}</td></tr>
+      <tr><td>공제</td><td>급식비</td><td>${n(s.meal)}</td></tr>
+      <tr><td>공제</td><td>고용보험 ${n(+$('insuranceRate').value)}%</td><td>${n(s.ins)}</td></tr>
+      <tr><td>합계</td><td>지급총액</td><td>${n(s.A)}</td></tr>
+      <tr><td>합계</td><td>공제총액</td><td>${n(s.B)}</td></tr>
+      <tr class="salary-net"><th scope="row">실지급액</th><td>지급총액 - 공제총액</td><td>${n(s.net)}</td></tr>
+    </tbody></table>
+    <h4>계산 내역</h4>
+    <div class="salary-formulas">
+      <p>근무수당: ${n(s.totalHours)}시간 × ${n(s.rate)}원 = ${n(s.workPay)}원</p>
+      ${weeklyFormulas}
+      <p>급식비: ${s.mealDays}일 × ${n(s.mealRate)}원 = ${n(s.meal)}원</p>
+      <p>고용보험: ${n(s.A)}원 × ${n(+$('insuranceRate').value)}% → ${n(s.ins)}원 (${e(roundText)})</p>
+      <p>실지급액: ${n(s.A)}원 - ${n(s.B)}원 = ${n(s.net)}원</p>
+    </div>
+    <p class="salary-issued">발급일: ${e(issue.slice(0,4))}년 ${Number(issue.slice(5,7))}월 ${Number(issue.slice(8,10))}일</p>
+    <div class="salary-signature"><strong>${e(school)}장</strong><div class="salary-seal ${salarySealData?'':'empty'}">${salarySealData?'<img alt="학교장 직인" src="'+salarySealData+'">':'직인'}</div></div>`;
+}
+function refreshSalaryPreview(){
+  if(!$('salaryPreviewWrap')||$('salaryPreviewWrap').hidden)return;
+  const problem=salaryProblem();
+  $('salaryPrintBtn').disabled=!!problem;
+  if(problem){$('salaryPreview').textContent=problem;salaryMessage(problem,true);return;}
+  renderSalarySheet();salaryMessage('최신 계산 결과가 반영되었습니다. 인쇄 창에서 프린터 또는 PDF로 저장을 선택하세요.');
+}
+function showSalaryPreview(){
+  calculate();
+  const problem=salaryProblem();
+  if(problem){salaryMessage(problem,true);for(const id of ['salarySchool','salaryName','salaryBirth','salaryIssue']){if(!$(id).value.trim()||!$(id).checkValidity()){$(id).reportValidity();$(id).focus();break;}}return false;}
+  $('salaryPreviewWrap').hidden=false;renderSalarySheet();$('salaryPrintBtn').disabled=false;
+  salaryMessage('급여명세서를 만들었습니다. 인쇄 창의 머리글·바닥글은 꺼 주세요. PDF로 저장한 파일을 본인에게 전달할 수 있습니다.');
+  return true;
+}
+function clearSalarySeal(){
+  salarySealVersion++;salarySealLoading=false;salarySealData='';$('salarySealFile').value='';
+  $('salarySealThumb').removeAttribute('src');$('salarySealThumb').hidden=true;$('salarySealEmpty').hidden=false;$('salaryRemoveSeal').disabled=true;
+  refreshSalaryPreview();
+}
+async function loadSalarySeal(file){
+  clearSalarySeal();if(!file)return;
+  if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>5*1024*1024){salaryMessage('직인은 5MB 이하의 PNG·JPG·WEBP 이미지를 선택해 주세요.',true);return;}
+  const version=salarySealVersion,url=URL.createObjectURL(file);salarySealLoading=true;refreshSalaryPreview();
+  try{
+    const img=new Image();img.src=url;await img.decode();
+    if(version!==salarySealVersion)return;
+    if(!img.naturalWidth||!img.naturalHeight||img.naturalWidth*img.naturalHeight>40000000)throw Error('이미지가 너무 크거나 손상되었습니다.');
+    const scale=Math.min(1,900/Math.max(img.naturalWidth,img.naturalHeight));
+    const cv=document.createElement('canvas');cv.width=Math.max(1,Math.round(img.naturalWidth*scale));cv.height=Math.max(1,Math.round(img.naturalHeight*scale));
+    cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);salarySealData=cv.toDataURL('image/png');
+    $('salarySealThumb').src=salarySealData;$('salarySealThumb').hidden=false;$('salarySealEmpty').hidden=true;$('salaryRemoveSeal').disabled=false;
+    salaryMessage('직인을 넣었습니다. 명세서의 직인 위치를 확인해 주세요.');
+  }catch(err){if(version===salarySealVersion)salaryMessage('직인 이미지를 읽지 못했습니다. 다른 PNG·JPG 파일을 선택해 주세요.',true);}
+  finally{URL.revokeObjectURL(url);if(version===salarySealVersion){salarySealLoading=false;refreshSalaryPreview();}}
+}
+function resetSalaryInfo(){
+  $('salaryName').value='';$('salaryBirth').value='';$('salaryIssue').value=salaryToday();clearSalarySeal();
+  $('salaryPreview').replaceChildren();$('salaryPreviewWrap').hidden=true;$('salaryPrintBtn').disabled=true;
+  salaryMessage('성명·생년월일·직인을 지웠습니다. 학교명은 유지됩니다.');
+}
+function initSalary(){
+  $('salaryIssue').value=salaryToday();$('salaryBirth').max=salaryToday();
+  for(const id of ['salarySchool','salaryName','salaryBirth','salaryIssue'])$(id).addEventListener('input',refreshSalaryPreview);
+  $('salaryPreviewBtn').onclick=()=>{if(showSalaryPreview())$('salaryPreviewWrap').scrollIntoView({behavior:'smooth',block:'start'});};
+  $('salaryPrintBtn').onclick=async()=>{
+    if(!showSalaryPreview())return;
+    const img=$('salaryPreview').querySelector('.salary-seal img');
+    if(img)try{await img.decode();}catch{salaryMessage('직인이 준비되지 않았습니다. 다시 선택해 주세요.',true);return;}
+    if(salaryProblem())return;
+    window.print();
+  };
+  $('salarySealFile').onchange=e=>loadSalarySeal(e.target.files[0]);$('salaryRemoveSeal').onclick=clearSalarySeal;$('salaryResetBtn').onclick=resetSalaryInfo;
+  window.addEventListener('beforeprint',()=>{
+    const problem=salaryProblem();
+    if(problem)$('salaryPreview').textContent=problem;
+    else renderSalarySheet();
+  });
 }
 
 async function ensureResolution(img){
@@ -1226,7 +1412,7 @@ $('pdfPage').addEventListener('change',()=>renderPdfPage($('pdfPage').value||1))
 $('clearBtn').onclick=()=>{
   rows=[];sourceImg=null;gridInfo=null;pdfDoc=null;pdfFileName='';$('pdfControls').style.display='none';$('file').value='';
   $('contractStart').value='';$('contractEnd').value='';delete $('contractEnd').dataset.autoFromSchedule;$('dy').textContent=$('dx').textContent=$('dd').textContent=$('dok').textContent='-';
-  setStep(1);setStatus('초기화했습니다. 새 캡처를 넣어 주세요.');renderRows();
+  resetSalaryInfo();setStep(1);setStatus('초기화했습니다. 새 캡처를 넣어 주세요.');renderRows();
 };
 $('addRow').onclick=()=>{
   const last=rows.length?parseDate(rows.at(-1).date):parseDate($('contractStart').value)||new Date();
@@ -1254,7 +1440,7 @@ $('csvBtn').onclick=()=>{
   const blob=new Blob(['\ufeff'+head.join(',')+'\n'+vals.join(',')],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='시간강사_자동계산결과.csv';a.click();
 };
-renderRows();calculate();
+initSalary();renderRows();calculate();
 
 // ── 실행환경 자가진단 ───────────────────────────────────────────
 (function selfCheck(){
@@ -1268,7 +1454,7 @@ renderRows();calculate();
   if(msgs.length){
     setStatus(msgs.join(' / '),'bad');
   }else{
-    setStatus('v18 준비 완료. 수업확인표 캡처나 PDF를 넣어 주세요.');
+    setStatus('v19 준비 완료. 수업확인표 캡처나 PDF를 넣어 주세요.');
   }
 })();
 
